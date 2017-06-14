@@ -38,8 +38,8 @@ public class MockSolarOutputServer {
         mockWebServer.setDispatcher(dispatcher);
     }
 
-    public void enqueueDesiredSolarOutputResponse(Object responseDTO) {
-        enqueueDesiredAPIResponse("/getSolarOutput", responseDTO, 200, DEFAULT_BODY_RESPONSE_DELAY_MILLIS);
+    public void enqueueDesiredSolarOutputResponse(Object responseDTO, String siteId, String apiKey) {
+        enqueueDesiredAPIResponse("/site/" + siteId + "/overview.json?api_key=" + apiKey, responseDTO, 200, DEFAULT_BODY_RESPONSE_DELAY_MILLIS);
     }
 
     /**
@@ -89,12 +89,7 @@ public class MockSolarOutputServer {
         @Override
         public MockResponse dispatch(RecordedRequest request) throws InterruptedException {
 
-            // For now, we ignore all parameters when finding response...
             String requestURL = request.getPath();
-            int hostDelimiter = request.getPath().indexOf("?");
-            if (hostDelimiter > -1) {
-                requestURL = request.getPath().substring(0, hostDelimiter);
-            }
 
             List<MockResponse> orderedResponses = requestToMockResponseMap.get(requestURL);
             if (null == orderedResponses || orderedResponses.isEmpty()) {

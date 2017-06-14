@@ -9,14 +9,16 @@ import javax.inject.Singleton;
 import dagger.Component;
 
 @Singleton
-@Component(modules={Module.class})
+@Component(modules={ServiceModule.class,
+                    HardwareModule.class})
 public interface ObjectGraph {
     void inject(MainActivity activity);
 
     final class Initializer {
         public static ObjectGraph init(Context context) {
             return DaggerObjectGraph.builder()
-                    .module(new Module(context))
+                    .serviceModule(new ServiceModule(context))
+                    .hardwareModule(new HardwareModule(context))
                     .build();
         }
     }

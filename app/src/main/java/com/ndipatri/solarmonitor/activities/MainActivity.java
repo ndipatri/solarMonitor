@@ -1,7 +1,6 @@
 package com.ndipatri.solarmonitor.activities;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -13,19 +12,27 @@ import android.widget.TextView;
 
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
+import com.ndipatri.solarmonitor.services.BluetoothService;
 import com.ndipatri.solarmonitor.services.SolarOutputService;
 
 import javax.inject.Inject;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
 
-    @Inject SolarOutputService solarOutputService;
+    protected @Inject SolarOutputService solarOutputService;
+    protected @Inject BluetoothService bluetoothService;
 
-    private ProgressBar refreshProgressBar;
-    private TextView dialogTextView;
+    protected @BindView(R.id.refreshProgressBar) ProgressBar refreshProgressBar;
+    protected @BindView(R.id.dialogTextView) TextView dialogTextView;
+    protected @BindView(R.id.bluetoothStatus) TextView bluetoothStatus;
+
+    private Disposable bluetoothStatusDisposable;
+    private Disposable solarOutputDisposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,46 +42,42 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        ButterKnife.bind(this);
 
-        refreshProgressBar = (ProgressBar) findViewById(R.id.refreshProgressBar);
-        dialogTextView = (TextView) findViewById(R.id.dialogTextView);
+        setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         refreshProgressBar.setVisibility(View.INVISIBLE);
         dialogTextView.setText("Click to load Solar Output ...");
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Retrieving latest solar output ...", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+        updateBluetoothStatus();
 
-                refreshProgressBar.setVisibility(View.VISIBLE);
-                dialogTextView.setVisibility(View.INVISIBLE);
+        findViewById(R.id.fab).setOnClickListener(viewClicked -> {
+            Snackbar.make(viewClicked, "Retrieving latest solar output ...", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
 
-                solarOutputService.getSolarOutput("123").subscribe(new SingleObserver<String>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-                        // we're not going to worry about this for now.
-                    }
-
-                    @Override
-                    public void onSuccess(String solarOutput) {
-                        refreshProgressBar.setVisibility(View.INVISIBLE);
-
-                        dialogTextView.setVisibility(View.VISIBLE);
-                        dialogTextView.setText(solarOutput);
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        // we're not going to worry about this for now.
-                    }
-                });
-            }
+            refreshProgressBar.setVisibility(View.VISIBLE);
+            dialogTextView.setVisibility(View.INVISIBLE);
+            updateSolarOutput();
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        updateBluetoothStatus();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (null != bluetoothStatusDisposable) {
+            bluetoothStatusDisposable.dispose();
+        }
+        if (null != solarOutputDisposable) {
+            solarOutputDisposable.dispose();
+        }
     }
 
     @Override
@@ -97,5 +100,51 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void updateBluetoothStatus() {
+        bluetoothService.getSomething().subscribe(new SingleObserver<String>() {
+            @Override
+            public void onSubscribe(Disposable bluetoothStatusDisposable) {
+                MainActivity.this.bluetoothStatusDisposable = bluetoothStatusDisposable;
+            }
+
+            @Override
+            public void onSuccess(String status) {
+                bluetoothStatus.setText(status);
+                MainActivity.this.bluetoothStatusDisposable = null;
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+        });
+    }
+
+    private void updateSolarOutput() {
+        solarOutputService.getSolarOutputInWatts(SolarMonitorApp.getInstance().getSolarCustomerId()).subscribe(new SingleObserver<Double>() {
+            @Override
+            public void onSubscribe(Disposable d) {
+                MainActivity.this.solarOutputDisposable = solarOutputDisposable;
+            }
+
+            @Override
+            public void onSuccess(Double solarOutputInWatts) {
+                refreshProgressBar.setVisibility(View.INVISIBLE);
+
+                dialogTextView.setVisibility(View.VISIBLE);
+
+                String outputString = solarOutputInWatts.toString() + " watts";
+                dialogTextView.setText(outputString);
+
+                MainActivity.this.solarOutputDisposable = null;
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                // we're not going to worry about this for now.
+            }
+        });
     }
 }

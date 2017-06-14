@@ -2,8 +2,8 @@ package com.ndipatri.solarmonitor.container;
 
 import android.content.Context;
 
-import com.ndipatri.solarmonitor.activities.MainActivity;
 import com.ndipatri.solarmonitor.MainActivityInstrumentationTest;
+import com.ndipatri.solarmonitor.activities.MainActivity;
 
 import javax.inject.Singleton;
 
@@ -11,16 +11,16 @@ import dagger.Component;
 
 @Singleton
 @Component(modules={ServiceModule.class,
-                    HardwareModule.class})
-public interface TestObjectGraph extends ObjectGraph {
+                    MockHardwareModule.class})
+public interface MockObjectGraph extends ObjectGraph {
     void inject(MainActivity activity);
     void inject(MainActivityInstrumentationTest test);
 
     final class Initializer {
-        public static TestObjectGraph init(Context context) {
-            return DaggerTestObjectGraph.builder()
+        public static MockObjectGraph init(Context context) {
+            return DaggerMockObjectGraph.builder()
                     .serviceModule(new ServiceModule(context))
-                    .hardwareModule(new HardwareModule(context))
+                    .mockHardwareModule(new MockHardwareModule(context))
                     .build();
         }
     }
