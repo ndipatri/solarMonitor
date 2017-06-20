@@ -17,6 +17,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.net.MalformedURLException;
+
 import javax.inject.Inject;
 
 import io.reactivex.Single;
@@ -24,6 +26,14 @@ import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
+import static android.support.test.espresso.Espresso.onView;
+import static android.support.test.espresso.action.ViewActions.click;
+import static android.support.test.espresso.assertion.PositionAssertions.isAbove;
+import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
+import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
@@ -31,6 +41,9 @@ public class MainActivityInstrumentationTest {
 
     @Rule
     public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class, true, false);
+
+    @Rule
+    public final AsyncTaskSchedulerRule asyncTaskSchedulerRule = new AsyncTaskSchedulerRule();
 
     @Inject SolarOutputService solarOutputService;
     @Inject BluetoothService bluetoothService;
@@ -49,7 +62,11 @@ public class MainActivityInstrumentationTest {
 
         activityRule.launchActivity(new Intent());
 
-        Thread.sleep(6000000);
+        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("real bluetooth found!")));
+
+        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
+
+        onView(withText("real bluetooth found!")).check(matches(not(isDisplayed())));
     }
 
     // Mock Endpoint
@@ -71,11 +88,68 @@ public class MainActivityInstrumentationTest {
         // Context of the app under test.
         SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
 
-        // By creating the graph here BEFORE it's used by the activity, we can inject our mock collaborators.
+        // We need access to the target application's production ObjectGraph so we can instrument our
+        // MockWebServer
         TestObjectGraph testObjectGraph = TestObjectGraph.Initializer.init(solarMonitorApp);
         solarMonitorApp.setObjectGraph(testObjectGraph);
         testObjectGraph.inject(this);
 
+        configureMockEndpoint(solarMonitorApp.getSolarCustomerId(), solarOutputService.getApiKey());
+
+        activityRule.launchActivity(new Intent());
+
+        /**
+         * Ok, now to actually do some testing!
+         */
+        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("real bluetooth found!")));
+
+        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
+
+        onView(withText("real bluetooth found!")).check(matches(not(isDisplayed())));
+
+        onView(withText("123.0 watts")).check(matches(isDisplayed()));
+    }
+
+    // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out
+    // some hardware components that our app depends upon.  The service layer in this
+    // mock ObjectGraph is still the real implementation and therefore needs the MockWebServer.
+    //
+    // Pros - Allows us to run repeatable tests on a device that might not have all required production
+    // components (e.g. emulators do not have Bluetooth).  This is useful for IOT testing.
+    //
+    // Cons - Can be incorrectly used to replace proper unit testing.  Unit tests are a
+    // much faster way to test front-end components.  So we still use the real service
+    // layer here!
+    @Test
+    public void retrieveSolarOutput_realService_mockHardware_mockEndpoint() throws Exception {
+
+        // Context of the app under test.
+        SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
+
+        // We can load the target application with a MockObjectGraph which will use real service
+        // layer but a mock hardware layer.
+        MockObjectGraph mockObjectGraph = MockObjectGraph.Initializer.init(solarMonitorApp);
+        solarMonitorApp.setObjectGraph(mockObjectGraph);
+        mockObjectGraph.inject(this);
+
+        configureMockEndpoint(solarMonitorApp.getSolarCustomerId(), solarOutputService.getApiKey());
+        configureMockHardware();
+
+        activityRule.launchActivity(new Intent());
+
+        /**
+         * Ok, now to actually do some testing!
+         */
+        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("mock bluetooth found!")));
+
+        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
+
+        onView(withText("mock bluetooth found!")).check(matches(not(isDisplayed())));
+
+        onView(withText("123.0 watts")).check(matches(isDisplayed()));
+    }
+
+    private void configureMockEndpoint(String solarCustomerId, String solarApiKey) throws MalformedURLException {
         // We deploy a MockWebServer to the same virtual machine as our
         // target APK
         MockSolarOutputServer mockSolarOutputServer = new MockSolarOutputServer();
@@ -92,51 +166,22 @@ public class MainActivityInstrumentationTest {
 
         mockSolarOutputServer.
                 enqueueDesiredSolarOutputResponse(getOverviewResponse,
-                                                  solarMonitorApp.getSolarCustomerId(),
-                                                  solarOutputService.getApiKey());
+                        solarCustomerId,
+                        solarApiKey);
 
         mockSolarOutputServer.beginUsingMockServer();
 
         // This is the only way in which our Test APK deviates from production.  We need to
         // point our service to the mock endpoint (mockWebServer)
         SolarOutputService.API_ENDPOINT_BASE_URL = mockSolarOutputServer.getMockSolarOutputServerURL();
-
-        activityRule.launchActivity(new Intent());
-
-        Thread.sleep(6000000);
     }
 
-    // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out
-    // some hardware components that our app depends upon.  The service layer in this
-    // mock ObjectGraph is still the real implementation.
-    //
-    // Pros - Allows us to run tests on a device that might not have all required production
-    // components (e.g. emulators do not have Bluetooth).  This is useful for IOT testing.
-    //
-    // Cons - Can be incorrectly used to replace proper unit testing.  Unit tests are a
-    // much faster way to test front-end components.  So we still use the real service
-    // layer here!
-    @Test
-    public void retrieveSolarOutput_realService_mockHardware_realEndpoint() throws Exception {
-
-        // Context of the app under test.
-        SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
-
-        // By creating the graph here BEFORE it's used by the activity, we can inject our mock collaborators.
-        MockObjectGraph mockObjectGraph = MockObjectGraph.Initializer.init(solarMonitorApp);
-        solarMonitorApp.setObjectGraph(mockObjectGraph);
-        mockObjectGraph.inject(this);
-
-        // Now that we've injected our test ObjectGraph, we can configure our mocks...
+    private void configureMockHardware() {
         when(bluetoothService.getSomething()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
             @Override
             public void subscribe(SingleEmitter<String> subscriber) throws Exception {
-                subscriber.onSuccess("mock bluetooth here!");
+                subscriber.onSuccess("mock bluetooth found!");
             }
         }));
-
-        activityRule.launchActivity(new Intent());
-
-        Thread.sleep(6000000);
     }
 }

@@ -20,7 +20,6 @@ public class HardwareModule {
     @Provides
     @Singleton
     BluetoothService providesBluetoothService(Context context) {
-
         return new BluetoothService(context);
     }
 }

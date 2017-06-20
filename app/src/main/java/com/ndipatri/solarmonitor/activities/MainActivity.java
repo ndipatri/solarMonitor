@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,6 +22,9 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
+
+import static android.view.View.INVISIBLE;
+import static android.view.View.VISIBLE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -46,17 +50,18 @@ public class MainActivity extends AppCompatActivity {
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
-        refreshProgressBar.setVisibility(View.INVISIBLE);
+        refreshProgressBar.setVisibility(INVISIBLE);
         dialogTextView.setText("Click to load Solar Output ...");
 
         updateBluetoothStatus();
 
-        findViewById(R.id.fab).setOnClickListener(viewClicked -> {
+        findViewById(R.id.solarUpdateFAB).setOnClickListener(viewClicked -> {
             Snackbar.make(viewClicked, "Retrieving latest solar output ...", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
 
-            refreshProgressBar.setVisibility(View.VISIBLE);
-            dialogTextView.setVisibility(View.INVISIBLE);
+            refreshProgressBar.setVisibility(VISIBLE);
+            dialogTextView.setVisibility(INVISIBLE);
+
             updateSolarOutput();
         });
     }
@@ -117,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable e) {
-
+                Log.e("MainActivity", "Exception while getting something from Bluetooth.", e);
             }
         });
     }
@@ -131,9 +136,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(Double solarOutputInWatts) {
-                refreshProgressBar.setVisibility(View.INVISIBLE);
+                refreshProgressBar.setVisibility(INVISIBLE);
+                bluetoothStatus.setVisibility(INVISIBLE);
 
-                dialogTextView.setVisibility(View.VISIBLE);
+                dialogTextView.setVisibility(VISIBLE);
 
                 String outputString = solarOutputInWatts.toString() + " watts";
                 dialogTextView.setText(outputString);
@@ -143,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable e) {
-                // we're not going to worry about this for now.
+                Log.e("MainActivity", "Exception while retrieving solar output.", e);
             }
         });
     }

@@ -1,9 +1,12 @@
 package com.ndipatri.solarmonitor.services;
 
 
+import android.util.Log;
+
 import com.ndipatri.solarmonitor.dto.GetOverviewResponse;
 
 import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
 import io.reactivex.SingleSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
@@ -17,32 +20,43 @@ import retrofit2.http.Query;
 
 public class SolarOutputService {
 
-    private SolarOutputRESTInterface interfaceImpl;
-
     public static String API_ENDPOINT_BASE_URL = "https://monitoringapi.solaredge.com/";
 
     private String apiKey;
 
     public SolarOutputService(String apiKey) {
-        Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
-                .baseUrl(API_ENDPOINT_BASE_URL)
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                .addConverterFactory(GsonConverterFactory.create());
-
         this.apiKey = apiKey;
-        interfaceImpl = retrofitBuilder.build().create(SolarOutputRESTInterface.class);
+    }
+
+    public Single<SolarOutputRESTInterface> getSolarOutputRESTEndpoint() {
+
+        return Single.create((SingleEmitter<SolarOutputRESTInterface> subscribe) -> {
+
+            Retrofit.Builder retrofitBuilder = new Retrofit.Builder()
+                    .baseUrl(API_ENDPOINT_BASE_URL)
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                    .addConverterFactory(GsonConverterFactory.create());
+
+            try {
+                subscribe.onSuccess(retrofitBuilder.build().create(SolarOutputRESTInterface.class));
+            } catch (Exception ex) {
+                Log.e("SolarOutputService", "Exception while getting endpoint.", ex);
+            }
+        })
+
+        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        .cache();
     }
 
     public Single<Double> getSolarOutputInWatts(String customerId) {
-        return interfaceImpl.getOverview(customerId, apiKey)
-                .flatMap(new Function<GetOverviewResponse, SingleSource<Double>>() {
-                    @Override
-                    public SingleSource<Double> apply(GetOverviewResponse getOverviewResponse) throws Exception {
-                        Double currentPower = getOverviewResponse.getOverview().getCurrentPower().getPower();
+        return getSolarOutputRESTEndpoint()
+                .flatMap(endpoint -> endpoint.getOverview(customerId, apiKey))
+                .flatMap(getOverviewResponse -> {
+                    Double currentPower = getOverviewResponse.getOverview().getCurrentPower().getPower();
 
-                        return Single.just(currentPower);
-                    }
+                    return Single.just(currentPower);
                 })
+
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 

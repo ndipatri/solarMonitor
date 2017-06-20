@@ -22,7 +22,6 @@ public class MockHardwareModule {
     @Provides
     @Singleton
     BluetoothService providesBluetoothService(Context context) {
-
         return mock(BluetoothService.class);
     }
 }

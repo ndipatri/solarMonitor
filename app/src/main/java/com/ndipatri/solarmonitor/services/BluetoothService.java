@@ -1,6 +1,7 @@
 package com.ndipatri.solarmonitor.services;
 
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
 import io.reactivex.Single;
@@ -12,12 +13,10 @@ public class BluetoothService {
     public BluetoothService(Context context){}
 
     public Single<String> getSomething() {
-        return Single.create(new SingleOnSubscribe<String>() {
-            @Override
-            public void subscribe(SingleEmitter<String> subscriber) throws Exception {
-                // NJD TODO - actually do something here...
-                subscriber.onSuccess("bluetooth found!");
-            }
+        return Single.create(subscriber -> {
+
+            BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            subscriber.onSuccess("real bluetooth found!");
         });
     }
 }
