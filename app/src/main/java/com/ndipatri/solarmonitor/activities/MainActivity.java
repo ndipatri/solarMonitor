@@ -7,7 +7,6 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -38,11 +37,13 @@ public class MainActivity extends AppCompatActivity {
     private Disposable bluetoothStatusDisposable;
     private Disposable solarOutputDisposable;
 
+    public MainActivity() {
+        SolarMonitorApp.getInstance().getObjectGraph().inject(this);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        ((SolarMonitorApp) getApplication()).getObjectGraph().inject(this);
 
         setContentView(R.layout.activity_main);
 
@@ -51,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
 
         refreshProgressBar.setVisibility(INVISIBLE);
-        dialogTextView.setText("Click to load Solar Output ...");
+        dialogTextView.setText(R.string.click_to_load_solar_output);
 
         updateBluetoothStatus();
 
@@ -108,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateBluetoothStatus() {
-        bluetoothService.getSomething().subscribe(new SingleObserver<String>() {
+        bluetoothService.getNearbySolarCustomerId().subscribe(new SingleObserver<String>() {
             @Override
             public void onSubscribe(Disposable bluetoothStatusDisposable) {
                 MainActivity.this.bluetoothStatusDisposable = bluetoothStatusDisposable;

@@ -56,6 +56,11 @@ dependencies {
 
     androidTestAnnotationProcessor 'com.google.dagger:dagger-compiler:2.9'
 
+    testCompile 'org.robolectric:robolectric:3.3'
+    testCompile 'org.robolectric:robolectric-resources:3.3'
+    testCompile 'org.robolectric:robolectric-annotations:3.3'
+    testCompile 'org.robolectric:shadows-support-v4:3.3'
+
     // dexmaker libraries are required to create Dalvik VM compatible mocks for Espresso.
     androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
     androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2';

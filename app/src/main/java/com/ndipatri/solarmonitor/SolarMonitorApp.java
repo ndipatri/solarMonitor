@@ -15,21 +15,18 @@ public class SolarMonitorApp extends Application {
     private static SolarMonitorApp instance;
 
     public SolarMonitorApp() {
-        this.instance = this;
+        SolarMonitorApp.instance = this;
     }
 
     public static SolarMonitorApp getInstance() {
         return instance;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
-        objectGraph = ObjectGraph.Initializer.init(this);
-    }
-
     public ObjectGraph getObjectGraph() {
+        if (objectGraph == null) {
+            objectGraph = ObjectGraph.Initializer.init(this);
+        }
+
         return objectGraph;
     }
 

@@ -177,7 +177,7 @@ public class MainActivityInstrumentationTest {
     }
 
     private void configureMockHardware() {
-        when(bluetoothService.getSomething()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
+        when(bluetoothService.getNearbySolarCustomerId()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
             @Override
             public void subscribe(SingleEmitter<String> subscriber) throws Exception {
                 subscriber.onSuccess("mock bluetooth found!");
