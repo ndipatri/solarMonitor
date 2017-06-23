@@ -94,7 +94,7 @@ public class MainActivityInstrumentationTest {
         solarMonitorApp.setObjectGraph(testObjectGraph);
         testObjectGraph.inject(this);
 
-        configureMockEndpoint(solarMonitorApp.getSolarCustomerId(), solarOutputService.getApiKey());
+        configureMockEndpoint(solarMonitorApp.getSolarCustomerId().get(), solarOutputService.getApiKey());
 
         activityRule.launchActivity(new Intent());
 
@@ -132,7 +132,7 @@ public class MainActivityInstrumentationTest {
         solarMonitorApp.setObjectGraph(mockObjectGraph);
         mockObjectGraph.inject(this);
 
-        configureMockEndpoint(solarMonitorApp.getSolarCustomerId(), solarOutputService.getApiKey());
+        configureMockEndpoint(solarMonitorApp.getSolarCustomerId().get(), solarOutputService.getApiKey());
         configureMockHardware();
 
         activityRule.launchActivity(new Intent());
@@ -177,7 +177,7 @@ public class MainActivityInstrumentationTest {
     }
 
     private void configureMockHardware() {
-        when(bluetoothService.getNearbySolarCustomerId()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
+        when(bluetoothService.searchForNearbyPanels()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
             @Override
             public void subscribe(SingleEmitter<String> subscriber) throws Exception {
                 subscriber.onSuccess("mock bluetooth found!");

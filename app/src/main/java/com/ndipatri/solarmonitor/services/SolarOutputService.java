@@ -5,8 +5,12 @@ import android.util.Log;
 
 import com.ndipatri.solarmonitor.dto.GetOverviewResponse;
 
+import java.sql.Time;
+import java.util.concurrent.TimeUnit;
+
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
 import io.reactivex.SingleSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
@@ -51,11 +55,11 @@ public class SolarOutputService {
     public Single<Double> getSolarOutputInWatts(String customerId) {
         return getSolarOutputRESTEndpoint()
                 .flatMap(endpoint -> endpoint.getOverview(customerId, apiKey))
-                .flatMap(getOverviewResponse -> {
-                    Double currentPower = getOverviewResponse.getOverview().getCurrentPower().getPower();
+                .flatMap(getOverviewResponse -> Single.create((SingleOnSubscribe<Double>) subscriber -> {
 
-                    return Single.just(currentPower);
-                })
+                    Double currentPower = getOverviewResponse.getOverview().getCurrentPower().getPower();
+                    subscriber.onSuccess(currentPower);
+                }))
 
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }

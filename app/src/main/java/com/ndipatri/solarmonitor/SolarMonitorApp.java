@@ -2,17 +2,19 @@ package com.ndipatri.solarmonitor;
 
 
 import android.app.Application;
+import android.preference.PreferenceManager;
 
+import com.f2prateek.rx.preferences2.Preference;
+import com.f2prateek.rx.preferences2.RxSharedPreferences;
 import com.ndipatri.solarmonitor.container.ObjectGraph;
 
 public class SolarMonitorApp extends Application {
 
     private ObjectGraph objectGraph;
 
-    // NJD TODO - need to allow user to config this
-    private String solarCustomerId = "480557";
-
     private static SolarMonitorApp instance;
+
+    private RxSharedPreferences sharedPreferences;
 
     public SolarMonitorApp() {
         SolarMonitorApp.instance = this;
@@ -20,6 +22,13 @@ public class SolarMonitorApp extends Application {
 
     public static SolarMonitorApp getInstance() {
         return instance;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        sharedPreferences = RxSharedPreferences.create(PreferenceManager.getDefaultSharedPreferences(this));
     }
 
     public ObjectGraph getObjectGraph() {
@@ -34,12 +43,11 @@ public class SolarMonitorApp extends Application {
         this.objectGraph = objectGraph;
     }
 
-    public String getSolarCustomerId() {
-        return solarCustomerId;
+    public Preference<String> getSolarCustomerId() {
+        return sharedPreferences.getString("SOLAR_CUSTOMER_ID");
     }
 
-    // NJD TODO - user should be able to change this.
-    public void setSolarCustomerId(String solarCustomerId) {
-        this.solarCustomerId = solarCustomerId;
+    public void setSolarCustomerId(final String solarCustomerId) {
+        getSolarCustomerId().set(solarCustomerId);
     }
 }
