@@ -13,6 +13,7 @@ import com.ndipatri.solarmonitor.dto.Overview;
 import com.ndipatri.solarmonitor.services.BluetoothService;
 import com.ndipatri.solarmonitor.services.SolarOutputService;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +49,16 @@ public class MainActivityInstrumentationTest {
     @Inject SolarOutputService solarOutputService;
     @Inject BluetoothService bluetoothService;
 
+    @Before
+    public void setUp() throws Exception {
+
+        // Context of the app under test.
+        SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
+
+        // clear out any remaining state.
+        solarMonitorApp.getSolarCustomerId().delete();
+    }
+
     // Live Testing
     //
     // Here we use our production ObjectGraph with our real service and hardware layer.  This service
@@ -61,6 +72,8 @@ public class MainActivityInstrumentationTest {
     public void retrieveSolarOutput_realService_realHardware_realEndpoint() throws Exception {
 
         activityRule.launchActivity(new Intent());
+
+        Thread.sleep(6000000);
 
         onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("real bluetooth found!")));
 

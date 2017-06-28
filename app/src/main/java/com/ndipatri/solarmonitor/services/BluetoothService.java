@@ -13,6 +13,8 @@ import io.reactivex.schedulers.Schedulers;
 
 public class BluetoothService {
 
+    public static final int NEARBY_PANEL_SCAN_TIMEOUT_SECONDS = 10;
+
     public BluetoothService(Context context){}
 
     public Single<String> searchForNearbyPanels() {
@@ -27,7 +29,10 @@ public class BluetoothService {
             subscriber.onSuccess("480557");
         })
 
-        .delay(1000, TimeUnit.MILLISECONDS) // simulate scan delay until we actually do bluetooth
+        // NJD TODO - remove when real BT scanning is done...
+        .delay(5000, TimeUnit.MILLISECONDS) // simulate scan delay until we actually do bluetooth
+
+        .timeout(NEARBY_PANEL_SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 }

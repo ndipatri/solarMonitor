@@ -5,15 +5,12 @@ import android.util.Log;
 
 import com.ndipatri.solarmonitor.dto.GetOverviewResponse;
 
-import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
-import io.reactivex.SingleSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -24,6 +21,8 @@ import retrofit2.http.Query;
 
 public class SolarOutputService {
 
+    public static final int SOLAR_OUTPUT_TIMEOUT_SECONDS = 10;
+
     public static String API_ENDPOINT_BASE_URL = "https://monitoringapi.solaredge.com/";
 
     private String apiKey;
@@ -32,7 +31,7 @@ public class SolarOutputService {
         this.apiKey = apiKey;
     }
 
-    public Single<SolarOutputRESTInterface> getSolarOutputRESTEndpoint() {
+    private Single<SolarOutputRESTInterface> getSolarOutputRESTEndpoint() {
 
         return Single.create((SingleEmitter<SolarOutputRESTInterface> subscribe) -> {
 
@@ -61,6 +60,10 @@ public class SolarOutputService {
                     subscriber.onSuccess(currentPower);
                 }))
 
+                // NJD TODO - comfort delay - remove
+                .delay(5000, TimeUnit.MILLISECONDS)
+
+                .timeout(SOLAR_OUTPUT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 

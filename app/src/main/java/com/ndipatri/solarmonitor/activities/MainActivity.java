@@ -4,11 +4,11 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.f2prateek.rx.preferences2.Preference;
 import com.ndipatri.solarmonitor.R;
@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
         SolarMonitorApp.getInstance().getObjectGraph().inject(this);
     }
 
+    //region menuSetup
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -67,7 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    //endregion
 
+    //region getSet
     public void setSolarOutputService(SolarOutputService solarOutputService) {
         this.solarOutputService = solarOutputService;
     }
@@ -75,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     public void setBluetoothService(BluetoothService bluetoothService) {
         this.bluetoothService = bluetoothService;
     }
+    //endregion
+
+    //region lifecyle
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        solarUpdateFAB.setOnClickListener(viewClicked -> updateSolarOutput());
         beaconScanFAB.setOnClickListener(viewClicked -> scanForNearbyPanels());
+        solarUpdateFAB.setOnClickListener(viewClicked -> updateSolarOutput());
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
     }
@@ -95,13 +101,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         updateStatusViews();
-
-        /**
-        Snackbar.make(refreshProgressBar, getString(R.string.welcome_back), Snackbar.LENGTH_SHORT)
-                .setAction("Action", null).show();
-         **/
-
-        updateSolarOutput();
     }
 
     @Override
@@ -115,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
             solarOutputDisposable.dispose();
         }
     }
+    //endregion
 
     private void updateStatusViews() {
 
@@ -125,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
             mainTextView.setVisibility(VISIBLE);
             detailTextView.setVisibility(INVISIBLE);
 
-            mainTextView.setText(getString(R.string.finding_nearby_solar_panels));
+            mainTextView.setText(getString(R.string.finding_nearby_solar_panel));
         } else
         if (null != solarOutputDisposable) {
             // loading solar output
@@ -134,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
             mainTextView.setVisibility(VISIBLE);
             detailTextView.setVisibility(VISIBLE);
 
-            mainTextView.setText(getString(R.string.retrieving_solar_output));
-            detailTextView.setText("solar customer (" + getSolarCustomerId().get() + ")");
+            mainTextView.setText(getString(R.string.loading_solar_output));
+            detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
         } else
         if (!getSolarCustomerId().isSet()) {
             // no customerId set
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
             mainTextView.setVisibility(VISIBLE);
             detailTextView.setVisibility(INVISIBLE);
 
-            mainTextView.setText(getString(R.string.click_to_find_nearby_solar_panels));
+            mainTextView.setText(getString(R.string.click_to_find_nearby_solar_panel));
         } else
         if (null != currentWattage) {
             // existing wattage available
@@ -155,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
 
             String outputString = currentWattage.toString() + " watts";
             mainTextView.setText(outputString);
-            detailTextView.setText("solar customer (" + getSolarCustomerId().get() + ")");
+            detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
         } else {
             // wattage not available
 
@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
             detailTextView.setVisibility(VISIBLE);
 
             mainTextView.setText(getString(R.string.click_to_load_solar_output));
-            detailTextView.setText("solar customer (" + getSolarCustomerId().get() + ")");
+            detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
         }
 
         if (getSolarCustomerId().isSet()) {
@@ -195,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable e) {
-                Log.e("MainActivity", "Exception while scanning for nearby solar panels.", e);
+                Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -220,7 +220,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(Throwable e) {
-                    Log.e("MainActivity", "Exception while retrieving solar output.", e);
+                    Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
                 }
             });
         }
