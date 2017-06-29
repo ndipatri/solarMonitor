@@ -1,10 +1,10 @@
 
-package com.ndipatri.solarmonitor.dto;
+package com.ndipatri.solarmonitor.services.solar.dto;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class LifeTimeData {
+public class LastDayData {
 
     @SerializedName("energy")
     @Expose

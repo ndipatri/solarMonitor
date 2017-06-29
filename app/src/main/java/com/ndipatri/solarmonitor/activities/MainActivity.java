@@ -13,8 +13,9 @@ import android.widget.Toast;
 import com.f2prateek.rx.preferences2.Preference;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
+import com.ndipatri.solarmonitor.dto.PowerOutput;
 import com.ndipatri.solarmonitor.services.BluetoothService;
-import com.ndipatri.solarmonitor.services.SolarOutputService;
+import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
 
 import javax.inject.Inject;
 
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private Disposable bluetoothStatusDisposable;
     private Disposable solarOutputDisposable;
 
-    private Double currentWattage;
+    private PowerOutput currentPowerOutput;
 
     public MainActivity() {
         SolarMonitorApp.getInstance().getObjectGraph().inject(this);
@@ -146,15 +147,23 @@ public class MainActivity extends AppCompatActivity {
 
             mainTextView.setText(getString(R.string.click_to_find_nearby_solar_panel));
         } else
-        if (null != currentWattage) {
+        if (null != currentPowerOutput) {
             // existing wattage available
 
             refreshProgressBar.setVisibility(INVISIBLE);
             mainTextView.setVisibility(VISIBLE);
             detailTextView.setVisibility(VISIBLE);
 
-            String outputString = currentWattage.toString() + " watts";
-            mainTextView.setText(outputString);
+            StringBuilder sbuf = new StringBuilder()
+                    .append("current: ")
+                    .append(currentPowerOutput.getCurrentPowerInWatts())
+                    .append(" watts, ")
+
+                    .append("lifetime: ")
+                    .append(currentPowerOutput.getLifeTimeEnergyInWattHours())
+                    .append(" wattHours.");
+
+            mainTextView.setText(sbuf.toString());
             detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
         } else {
             // wattage not available
@@ -188,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
                 SolarMonitorApp.getInstance().setSolarCustomerId(foundCustomerId);
 
                 MainActivity.this.bluetoothStatusDisposable = null;
-                MainActivity.this.currentWattage = null;
+                MainActivity.this.currentPowerOutput = null;
 
                 updateStatusViews();
             }
@@ -203,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateSolarOutput() {
         if (getSolarCustomerId().isSet()) {
 
-            solarOutputService.getSolarOutputInWatts(getSolarCustomerId().get()).subscribe(new SingleObserver<Double>() {
+            solarOutputService.getSolarOutput(getSolarCustomerId().get()).subscribe(new SingleObserver<PowerOutput>() {
                 @Override
                 public void onSubscribe(Disposable solarOutputDisposable) {
                     MainActivity.this.solarOutputDisposable = solarOutputDisposable;
@@ -211,9 +220,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onSuccess(Double solarOutputInWatts) {
+                public void onSuccess(PowerOutput currentPowerOutput) {
                     MainActivity.this.solarOutputDisposable = null;
-                    MainActivity.this.currentWattage = solarOutputInWatts;
+                    MainActivity.this.currentPowerOutput = currentPowerOutput;
 
                     updateStatusViews();
                 }

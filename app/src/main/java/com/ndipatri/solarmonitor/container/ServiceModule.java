@@ -3,7 +3,7 @@ package com.ndipatri.solarmonitor.container;
 import android.content.Context;
 
 import com.ndipatri.solarmonitor.R;
-import com.ndipatri.solarmonitor.services.SolarOutputService;
+import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
 
 import javax.inject.Singleton;
 

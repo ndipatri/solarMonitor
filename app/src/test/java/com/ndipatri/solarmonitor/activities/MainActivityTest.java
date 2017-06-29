@@ -7,8 +7,9 @@ import android.widget.TextView;
 import com.ndipatri.solarmonitor.BuildConfig;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
+import com.ndipatri.solarmonitor.dto.PowerOutput;
 import com.ndipatri.solarmonitor.services.BluetoothService;
-import com.ndipatri.solarmonitor.services.SolarOutputService;
+import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -162,7 +163,7 @@ public class MainActivityTest {
          // and onResume() our activity.
 
          SolarMonitorApp.getInstance().getSolarCustomerId().set("54321");
-         when(mockSolarOutputService.getSolarOutputInWatts("54321")).thenReturn(Single.just(123D).delay(1, TimeUnit.SECONDS));
+         when(mockSolarOutputService.getSolarOutput("54321")).thenReturn(Single.just(new PowerOutput(123D, 456D)).delay(1, TimeUnit.SECONDS));
 
          // Creates, starts, resumes activity ...
          controller.setup();
@@ -192,7 +193,7 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         SolarMonitorApp.getInstance().getSolarCustomerId().set("54321");
-        when(mockSolarOutputService.getSolarOutputInWatts("54321")).thenReturn(Single.just(123D));
+        when(mockSolarOutputService.getSolarOutput("54321")).thenReturn(Single.just(new PowerOutput(123D, 456D)));
 
         // Creates, starts, resumes activity ...
         controller.setup();
@@ -211,7 +212,7 @@ public class MainActivityTest {
 
         assertEquals("solar panel (54321)",
                 ((TextView) activity.findViewById(R.id.detailTextView)).getText());
-        assertEquals("123.0 watts",
+        assertEquals("current: 123.0 watts, lifetime: 456.0 wattsHours.",
                 ((TextView) activity.findViewById(R.id.mainTextView)).getText());
     }
 
@@ -237,7 +238,7 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         SolarMonitorApp.getInstance().getSolarCustomerId().set("54321");
-        when(mockSolarOutputService.getSolarOutputInWatts("54321"))
+        when(mockSolarOutputService.getSolarOutput("54321"))
                 .thenReturn(Single.create(subscriber -> subscriber.onError(new TimeoutException())));
 
         // Creates, starts, resumes activity ...

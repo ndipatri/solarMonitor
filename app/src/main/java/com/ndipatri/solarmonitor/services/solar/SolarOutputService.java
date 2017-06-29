@@ -1,9 +1,10 @@
-package com.ndipatri.solarmonitor.services;
+package com.ndipatri.solarmonitor.services.solar;
 
 
 import android.util.Log;
 
-import com.ndipatri.solarmonitor.dto.GetOverviewResponse;
+import com.ndipatri.solarmonitor.dto.PowerOutput;
+import com.ndipatri.solarmonitor.services.solar.dto.GetOverviewResponse;
 
 import java.util.concurrent.TimeUnit;
 
@@ -51,13 +52,15 @@ public class SolarOutputService {
         .cache();
     }
 
-    public Single<Double> getSolarOutputInWatts(String customerId) {
+    public Single<PowerOutput> getSolarOutput(String customerId) {
         return getSolarOutputRESTEndpoint()
                 .flatMap(endpoint -> endpoint.getOverview(customerId, apiKey))
-                .flatMap(getOverviewResponse -> Single.create((SingleOnSubscribe<Double>) subscriber -> {
+                .flatMap(getOverviewResponse -> Single.create((SingleOnSubscribe<PowerOutput>) subscriber -> {
 
                     Double currentPower = getOverviewResponse.getOverview().getCurrentPower().getPower();
-                    subscriber.onSuccess(currentPower);
+                    Double lifeTimeEnergy = getOverviewResponse.getOverview().getLifeTimeData().getEnergy();
+
+                    subscriber.onSuccess(new PowerOutput(currentPower, lifeTimeEnergy));
                 }))
 
                 // NJD TODO - comfort delay - remove

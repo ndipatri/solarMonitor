@@ -7,11 +7,13 @@ import android.support.test.runner.AndroidJUnit4;
 import com.ndipatri.solarmonitor.activities.MainActivity;
 import com.ndipatri.solarmonitor.container.MockObjectGraph;
 import com.ndipatri.solarmonitor.container.TestObjectGraph;
-import com.ndipatri.solarmonitor.dto.CurrentPower;
-import com.ndipatri.solarmonitor.dto.GetOverviewResponse;
-import com.ndipatri.solarmonitor.dto.Overview;
+import com.ndipatri.solarmonitor.services.solar.dto.CurrentPower;
+import com.ndipatri.solarmonitor.services.solar.dto.GetOverviewResponse;
+import com.ndipatri.solarmonitor.services.solar.dto.LifeTimeData;
+import com.ndipatri.solarmonitor.services.solar.dto.Overview;
+import com.ndipatri.solarmonitor.mocks.MockSolarOutputServer;
 import com.ndipatri.solarmonitor.services.BluetoothService;
-import com.ndipatri.solarmonitor.services.SolarOutputService;
+import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,17 +71,18 @@ public class MainActivityInstrumentationTest {
     // Cons - live endpoint and hardware need to be in a known state.  If a test fails, your scope is so large
     // it doesn't really tell you much, necessarily, about your code itself.
     @Test
-    public void retrieveSolarOutput_realService_realHardware_realEndpoint() throws Exception {
+    public void retrieveSolarOutput_realHardware_realEndpoint() throws Exception {
 
         activityRule.launchActivity(new Intent());
 
-        Thread.sleep(6000000);
+        // NJD TODO - this works for now because our 'real' BluetoothService fakes a bluetooth
+        // message from my home system.. in reality, i should be listening for real bluetooth
+        // signals.. i need to do this still
 
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("real bluetooth found!")));
+        onView(withText("Click to find nearby Solar panel.")).check(matches(isDisplayed()));
 
-        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
-
-        onView(withText("real bluetooth found!")).check(matches(not(isDisplayed())));
+        onView(withId(R.id.solarUpdateFAB)).check(matches(not(isDisplayed())));
+        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed()));
     }
 
     // Mock Endpoint
@@ -96,7 +99,7 @@ public class MainActivityInstrumentationTest {
     //        endpoint design or implementation.
     //
     @Test
-    public void retrieveSolarOutput_realService_realHardware_mockEndpoint() throws Exception {
+    public void retrieveSolarOutput_realHardware_mockEndpoint() throws Exception {
 
         // Context of the app under test.
         SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
@@ -134,7 +137,7 @@ public class MainActivityInstrumentationTest {
     // much faster way to test front-end components.  So we still use the real service
     // layer here!
     @Test
-    public void retrieveSolarOutput_realService_mockHardware_mockEndpoint() throws Exception {
+    public void retrieveSolarOutput_mockHardware_mockEndpoint() throws Exception {
 
         // Context of the app under test.
         SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
@@ -153,7 +156,7 @@ public class MainActivityInstrumentationTest {
         /**
          * Ok, now to actually do some testing!
          */
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("mock bluetooth found!")));
+        onView(withText("Click to find nearby Solar panel.")).check(matches(isDisplayed())).check(isAbove(withText("mock bluetooth found!")));
 
         onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
 
@@ -172,8 +175,12 @@ public class MainActivityInstrumentationTest {
         CurrentPower currentPower = new CurrentPower();
         currentPower.setPower(123D);
 
+        LifeTimeData lifeTimeData = new LifeTimeData();
+        lifeTimeData.setEnergy(456D);
+
         Overview overview = new Overview();
         overview.setCurrentPower(currentPower);
+        overview.setLifeTimeData(lifeTimeData);
 
         getOverviewResponse.setOverview(overview);
 
