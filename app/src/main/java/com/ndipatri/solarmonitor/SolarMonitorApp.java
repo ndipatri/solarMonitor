@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 
 import com.f2prateek.rx.preferences2.Preference;
 import com.f2prateek.rx.preferences2.RxSharedPreferences;
+import com.ndipatri.iot.googleproximity.container.GoogleProximity;
 import com.ndipatri.solarmonitor.container.ObjectGraph;
 
 public class SolarMonitorApp extends Application {
@@ -29,6 +30,8 @@ public class SolarMonitorApp extends Application {
         super.onCreate();
 
         sharedPreferences = RxSharedPreferences.create(PreferenceManager.getDefaultSharedPreferences(this));
+
+        GoogleProximity.initialize(this, false);
     }
 
     public ObjectGraph getObjectGraph() {

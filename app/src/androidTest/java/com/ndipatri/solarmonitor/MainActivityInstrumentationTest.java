@@ -85,47 +85,6 @@ public class MainActivityInstrumentationTest {
         onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed()));
     }
 
-    // Mock Endpoint
-    //
-    // Here we use our production ObjectGraph with our real service and hardware layer.  This service
-    // layer requires a remote RESTful endpoint. We use MockWebServer to create a
-    // real endpoint.
-    //
-    // Pros - Allows to automated 'integration testing' with a deterministic, configurable endpoint.
-    //        It's possible for the real endpoint to not yet exist.  If a test fails, you know the
-    //        code is to blame and not the endpoint (reduced test scope)
-    //
-    // Cons - MockWebServer requires configuration, mock endpoint might diverge from actual
-    //        endpoint design or implementation.
-    //
-    @Test
-    public void retrieveSolarOutput_realHardware_mockEndpoint() throws Exception {
-
-        // Context of the app under test.
-        SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
-
-        // We need access to the target application's production ObjectGraph so we can instrument our
-        // MockWebServer
-        TestObjectGraph testObjectGraph = TestObjectGraph.Initializer.init(solarMonitorApp);
-        solarMonitorApp.setObjectGraph(testObjectGraph);
-        testObjectGraph.inject(this);
-
-        configureMockEndpoint(solarMonitorApp.getSolarCustomerId().get(), solarOutputService.getApiKey());
-
-        activityRule.launchActivity(new Intent());
-
-        /**
-         * Ok, now to actually do some testing!
-         */
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("real bluetooth found!")));
-
-        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
-
-        onView(withText("real bluetooth found!")).check(matches(not(isDisplayed())));
-
-        onView(withText("123.0 watts")).check(matches(isDisplayed()));
-    }
-
     // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out
     // some hardware components that our app depends upon.  The service layer in this
     // mock ObjectGraph is still the real implementation and therefore needs the MockWebServer.
@@ -197,11 +156,6 @@ public class MainActivityInstrumentationTest {
     }
 
     private void configureMockHardware() {
-        when(bluetoothService.searchForNearbyPanels()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
-            @Override
-            public void subscribe(SingleEmitter<String> subscriber) throws Exception {
-                subscriber.onSuccess("mock bluetooth found!");
-            }
-        }));
+        when(bluetoothService.searchForNearbyPanels()).thenReturn(Single.create(subscriber -> subscriber.onSuccess("11111111")));
     }
 }
