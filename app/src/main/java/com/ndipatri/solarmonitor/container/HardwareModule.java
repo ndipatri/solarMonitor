@@ -2,7 +2,7 @@ package com.ndipatri.solarmonitor.container;
 
 import android.content.Context;
 
-import com.ndipatri.solarmonitor.services.BluetoothService;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 
 import javax.inject.Singleton;
 
@@ -19,7 +19,7 @@ public class HardwareModule {
 
     @Provides
     @Singleton
-    BluetoothService providesBluetoothService(Context context) {
-        return new BluetoothService(context);
+    PanelScanProvider providesBluetoothService(Context context) {
+        return new PanelScanProvider(context);
     }
 }

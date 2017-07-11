@@ -1,5 +1,5 @@
 
-package com.ndipatri.solarmonitor.services.solar.dto;
+package com.ndipatri.solarmonitor.providers.solarUpdate.dto;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

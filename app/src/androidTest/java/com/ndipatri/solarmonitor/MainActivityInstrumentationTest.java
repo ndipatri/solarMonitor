@@ -6,14 +6,14 @@ import android.support.test.runner.AndroidJUnit4;
 
 import com.ndipatri.solarmonitor.activities.MainActivity;
 import com.ndipatri.solarmonitor.container.MockObjectGraph;
-import com.ndipatri.solarmonitor.container.TestObjectGraph;
-import com.ndipatri.solarmonitor.services.solar.dto.CurrentPower;
-import com.ndipatri.solarmonitor.services.solar.dto.GetOverviewResponse;
-import com.ndipatri.solarmonitor.services.solar.dto.LifeTimeData;
-import com.ndipatri.solarmonitor.services.solar.dto.Overview;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
+import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.CurrentPower;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.GetOverviewResponse;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.LifeTimeData;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.Overview;
 import com.ndipatri.solarmonitor.mocks.MockSolarOutputServer;
-import com.ndipatri.solarmonitor.services.BluetoothService;
-import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,9 +24,8 @@ import java.net.MalformedURLException;
 
 import javax.inject.Inject;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
 
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static android.support.test.espresso.Espresso.onView;
@@ -48,8 +47,10 @@ public class MainActivityInstrumentationTest {
     @Rule
     public final AsyncTaskSchedulerRule asyncTaskSchedulerRule = new AsyncTaskSchedulerRule();
 
-    @Inject SolarOutputService solarOutputService;
-    @Inject BluetoothService bluetoothService;
+    @Inject
+    SolarOutputProvider solarOutputProvider;
+    @Inject
+    PanelScanProvider panelScanProvider;
 
     @Before
     public void setUp() throws Exception {
@@ -75,7 +76,7 @@ public class MainActivityInstrumentationTest {
 
         activityRule.launchActivity(new Intent());
 
-        // NJD TODO - this works for now because our 'real' BluetoothService fakes a bluetooth
+        // NJD TODO - this works for now because our 'real' PanelScanProvider fakes a bluetooth
         // message from my home system.. in reality, i should be listening for real bluetooth
         // signals.. i need to do this still
 
@@ -107,7 +108,7 @@ public class MainActivityInstrumentationTest {
         solarMonitorApp.setObjectGraph(mockObjectGraph);
         mockObjectGraph.inject(this);
 
-        configureMockEndpoint(solarMonitorApp.getSolarCustomerId().get(), solarOutputService.getApiKey());
+        configureMockEndpoint(solarMonitorApp.getSolarCustomerId().get(), solarOutputProvider.getApiKey());
         configureMockHardware();
 
         activityRule.launchActivity(new Intent());
@@ -152,10 +153,13 @@ public class MainActivityInstrumentationTest {
 
         // This is the only way in which our Test APK deviates from production.  We need to
         // point our service to the mock endpoint (mockWebServer)
-        SolarOutputService.API_ENDPOINT_BASE_URL = mockSolarOutputServer.getMockSolarOutputServerURL();
+        SolarOutputProvider.API_ENDPOINT_BASE_URL = mockSolarOutputServer.getMockSolarOutputServerURL();
     }
 
     private void configureMockHardware() {
-        when(bluetoothService.searchForNearbyPanels()).thenReturn(Single.create(subscriber -> subscriber.onSuccess("11111111")));
+        when(panelScanProvider.scanForNearbyPanel()).thenReturn(Observable.create(subscriber -> {
+            subscriber.onNext(new PanelInfo("Nicks Solar Panels", "11111111"));
+            subscriber.onComplete();
+        }));
     }
 }

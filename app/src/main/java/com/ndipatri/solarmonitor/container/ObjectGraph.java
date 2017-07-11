@@ -12,7 +12,7 @@ import dagger.Component;
 @Component(modules={ServiceModule.class,
                     HardwareModule.class})
 public interface ObjectGraph {
-    void inject(MainActivity activity);
+    void inject(MainActivity thingy);
 
     final class Initializer {
         public static ObjectGraph init(Context context) {

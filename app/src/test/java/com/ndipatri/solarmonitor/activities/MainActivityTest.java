@@ -8,8 +8,9 @@ import com.ndipatri.solarmonitor.BuildConfig;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
 import com.ndipatri.solarmonitor.dto.PowerOutput;
-import com.ndipatri.solarmonitor.services.BluetoothService;
-import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
+import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +24,7 @@ import org.robolectric.util.ActivityController;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.TestScheduler;
@@ -37,8 +39,8 @@ public class MainActivityTest {
 
     private ActivityController<MainActivity> controller;
     private MainActivity activity;
-    private BluetoothService mockBluetoothService;
-    private SolarOutputService mockSolarOutputService;
+    private PanelScanProvider mockPanelScanProvider;
+    private SolarOutputProvider mockSolarOutputProvider;
 
     @Before
     public void setUp() {
@@ -49,11 +51,11 @@ public class MainActivityTest {
         activity = controller.get();
 
         // Now we mock out collaborators
-        mockBluetoothService = mock(BluetoothService.class);
-        activity.setBluetoothService(mockBluetoothService);
+        mockPanelScanProvider = mock(PanelScanProvider.class);
+        activity.setPanelScanProvider(mockPanelScanProvider);
 
-        mockSolarOutputService = mock(SolarOutputService.class);
-        activity.setSolarOutputService(mockSolarOutputService);
+        mockSolarOutputProvider = mock(SolarOutputProvider.class);
+        activity.setSolarOutputProvider(mockSolarOutputProvider);
     }
 
     @Test
@@ -86,7 +88,7 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         // Because our scan response is delayed, we will be waiting for results...
-        when(mockBluetoothService.searchForNearbyPanels()).thenReturn(Single.just("12345").delay(1000, TimeUnit.MILLISECONDS));
+        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Observable.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1000, TimeUnit.MILLISECONDS));
 
         // Creates, starts, resumes activity ...
         controller.setup();
@@ -122,7 +124,7 @@ public class MainActivityTest {
         RxJavaPlugins.setComputationSchedulerHandler(scheduler -> testScheduler);
         RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
 
-        when(mockBluetoothService.searchForNearbyPanels()).thenReturn(Single.just("12345").delay(1, TimeUnit.SECONDS));
+        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Observable.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1, TimeUnit.SECONDS));
 
         // Creates, starts, resumes activity ...
         controller.setup();
@@ -163,7 +165,7 @@ public class MainActivityTest {
          // and onResume() our activity.
 
          SolarMonitorApp.getInstance().getSolarCustomerId().set("54321");
-         when(mockSolarOutputService.getSolarOutput("54321")).thenReturn(Single.just(new PowerOutput(123D, 456D)).delay(1, TimeUnit.SECONDS));
+         when(mockSolarOutputProvider.getSolarOutput("54321")).thenReturn(Single.just(new PowerOutput(123D, 456D)).delay(1, TimeUnit.SECONDS));
 
          // Creates, starts, resumes activity ...
          controller.setup();
@@ -193,7 +195,7 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         SolarMonitorApp.getInstance().getSolarCustomerId().set("54321");
-        when(mockSolarOutputService.getSolarOutput("54321")).thenReturn(Single.just(new PowerOutput(123D, 456D)));
+        when(mockSolarOutputProvider.getSolarOutput("54321")).thenReturn(Single.just(new PowerOutput(123D, 456D)));
 
         // Creates, starts, resumes activity ...
         controller.setup();
@@ -221,8 +223,8 @@ public class MainActivityTest {
         // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
         // and onResume() our activity.
 
-        when(mockBluetoothService.searchForNearbyPanels())
-                .thenReturn(Single.create(subscriber -> subscriber.onError(new TimeoutException())));
+        when(mockPanelScanProvider.scanForNearbyPanel())
+                .thenReturn(Observable.create(subscriber -> subscriber.onError(new TimeoutException())));
 
         // Creates, starts, resumes activity ...
         controller.setup();
@@ -238,7 +240,7 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         SolarMonitorApp.getInstance().getSolarCustomerId().set("54321");
-        when(mockSolarOutputService.getSolarOutput("54321"))
+        when(mockSolarOutputProvider.getSolarOutput("54321"))
                 .thenReturn(Single.create(subscriber -> subscriber.onError(new TimeoutException())));
 
         // Creates, starts, resumes activity ...

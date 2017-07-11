@@ -1,10 +1,10 @@
-package com.ndipatri.solarmonitor.services.solar;
+package com.ndipatri.solarmonitor.providers.solarUpdate;
 
 
 import android.util.Log;
 
 import com.ndipatri.solarmonitor.dto.PowerOutput;
-import com.ndipatri.solarmonitor.services.solar.dto.GetOverviewResponse;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.GetOverviewResponse;
 
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +20,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
-public class SolarOutputService {
+public class SolarOutputProvider {
 
     public static final int SOLAR_OUTPUT_TIMEOUT_SECONDS = 10;
 
@@ -28,7 +28,7 @@ public class SolarOutputService {
 
     private String apiKey;
 
-    public SolarOutputService(String apiKey) {
+    public SolarOutputProvider(String apiKey) {
         this.apiKey = apiKey;
     }
 
@@ -44,7 +44,7 @@ public class SolarOutputService {
             try {
                 subscribe.onSuccess(retrofitBuilder.build().create(SolarOutputRESTInterface.class));
             } catch (Exception ex) {
-                Log.e("SolarOutputService", "Exception while getting endpoint.", ex);
+                Log.e("SolarOutputProvider", "Exception while getting endpoint.", ex);
             }
         })
 

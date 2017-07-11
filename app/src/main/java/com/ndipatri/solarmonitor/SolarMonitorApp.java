@@ -6,8 +6,9 @@ import android.preference.PreferenceManager;
 
 import com.f2prateek.rx.preferences2.Preference;
 import com.f2prateek.rx.preferences2.RxSharedPreferences;
-import com.ndipatri.iot.googleproximity.container.GoogleProximity;
+import com.ndipatri.iot.googleproximity.GoogleProximity;
 import com.ndipatri.solarmonitor.container.ObjectGraph;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 
 public class SolarMonitorApp extends Application {
 

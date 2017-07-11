@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
@@ -14,13 +15,15 @@ import com.f2prateek.rx.preferences2.Preference;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
 import com.ndipatri.solarmonitor.dto.PowerOutput;
-import com.ndipatri.solarmonitor.services.BluetoothService;
-import com.ndipatri.solarmonitor.services.solar.SolarOutputService;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
+import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;
 
 import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Observer;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 
@@ -29,16 +32,25 @@ import static android.view.View.VISIBLE;
 
 public class MainActivity extends AppCompatActivity {
 
-    @Inject SolarOutputService solarOutputService;
-    @Inject BluetoothService bluetoothService;
+    private static final String TAG = MainActivity.class.getSimpleName();
 
-    @BindView(R.id.refreshProgressBar) ProgressBar refreshProgressBar;
-    @BindView(R.id.mainTextView) TextView mainTextView;
-    @BindView(R.id.detailTextView) TextView detailTextView;
-    @BindView(R.id.solarUpdateFAB) FloatingActionButton solarUpdateFAB;
-    @BindView(R.id.beaconScanFAB) FloatingActionButton beaconScanFAB;
+    @Inject
+    SolarOutputProvider solarOutputProvider;
+    @Inject
+    PanelScanProvider panelScanProvider;
 
-    private Disposable bluetoothStatusDisposable;
+    @BindView(R.id.refreshProgressBar)
+    ProgressBar refreshProgressBar;
+    @BindView(R.id.mainTextView)
+    TextView mainTextView;
+    @BindView(R.id.detailTextView)
+    TextView detailTextView;
+    @BindView(R.id.solarUpdateFAB)
+    FloatingActionButton solarUpdateFAB;
+    @BindView(R.id.beaconScanFAB)
+    FloatingActionButton beaconScanFAB;
+
+    private Disposable panelScanDisposable;
     private Disposable solarOutputDisposable;
 
     private PowerOutput currentPowerOutput;
@@ -72,12 +84,12 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
     //region getSet
-    public void setSolarOutputService(SolarOutputService solarOutputService) {
-        this.solarOutputService = solarOutputService;
+    public void setSolarOutputProvider(SolarOutputProvider solarOutputProvider) {
+        this.solarOutputProvider = solarOutputProvider;
     }
 
-    public void setBluetoothService(BluetoothService bluetoothService) {
-        this.bluetoothService = bluetoothService;
+    public void setPanelScanProvider(PanelScanProvider panelScanProvider) {
+        this.panelScanProvider = panelScanProvider;
     }
     //endregion
 
@@ -108,8 +120,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        if (null != bluetoothStatusDisposable) {
-            bluetoothStatusDisposable.dispose();
+        if (null != panelScanDisposable) {
+            panelScanDisposable.dispose();
         }
         if (null != solarOutputDisposable) {
             solarOutputDisposable.dispose();
@@ -119,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateStatusViews() {
 
-        if (null != bluetoothStatusDisposable) {
+        if (null != panelScanDisposable) {
             // scanning for nearby panels
 
             refreshProgressBar.setVisibility(VISIBLE);
@@ -127,8 +139,7 @@ public class MainActivity extends AppCompatActivity {
             detailTextView.setVisibility(INVISIBLE);
 
             mainTextView.setText(getString(R.string.finding_nearby_solar_panel));
-        } else
-        if (null != solarOutputDisposable) {
+        } else if (null != solarOutputDisposable) {
             // loading solar output
 
             refreshProgressBar.setVisibility(VISIBLE);
@@ -137,8 +148,7 @@ public class MainActivity extends AppCompatActivity {
 
             mainTextView.setText(getString(R.string.loading_solar_output));
             detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
-        } else
-        if (!getSolarCustomerId().isSet()) {
+        } else if (!getSolarCustomerId().isSet()) {
             // no customerId set
 
             refreshProgressBar.setVisibility(INVISIBLE);
@@ -146,8 +156,7 @@ public class MainActivity extends AppCompatActivity {
             detailTextView.setVisibility(INVISIBLE);
 
             mainTextView.setText(getString(R.string.click_to_find_nearby_solar_panel));
-        } else
-        if (null != currentPowerOutput) {
+        } else if (null != currentPowerOutput) {
             // existing wattage available
 
             refreshProgressBar.setVisibility(INVISIBLE);
@@ -185,26 +194,38 @@ public class MainActivity extends AppCompatActivity {
 
     private void scanForNearbyPanels() {
 
-        bluetoothService.searchForNearbyPanels().subscribe(new SingleObserver<String>() {
+        panelScanProvider.scanForNearbyPanel().subscribe(new Observer<PanelInfo>() {
             @Override
-            public void onSubscribe(Disposable bluetoothStatusDisposable) {
-                MainActivity.this.bluetoothStatusDisposable = bluetoothStatusDisposable;
+            public void onSubscribe(Disposable d) {
+                MainActivity.this.panelScanDisposable = panelScanDisposable;
                 updateStatusViews();
             }
 
             @Override
-            public void onSuccess(String foundCustomerId) {
-                SolarMonitorApp.getInstance().setSolarCustomerId(foundCustomerId);
+            public void onNext(PanelInfo panelInfo) {
+                if (panelInfo.getCustomerId().isPresent()) {
+                    Log.d(TAG, "Panel found with customerId configured.");
 
-                MainActivity.this.bluetoothStatusDisposable = null;
-                MainActivity.this.currentPowerOutput = null;
+                    SolarMonitorApp.getInstance().setSolarCustomerId(panelInfo.getCustomerId().get());
 
-                updateStatusViews();
+                    MainActivity.this.panelScanDisposable = null;
+                    MainActivity.this.currentPowerOutput = null;
+
+                    updateStatusViews();
+                } else {
+                    Log.d(TAG, "Panel found, but it needs to be configured.");
+                }
             }
 
             @Override
             public void onError(Throwable e) {
                 Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onComplete() {
+                MainActivity.this.panelScanDisposable.dispose();
+                MainActivity.this.panelScanDisposable = null;
             }
         });
     }
@@ -212,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateSolarOutput() {
         if (getSolarCustomerId().isSet()) {
 
-            solarOutputService.getSolarOutput(getSolarCustomerId().get()).subscribe(new SingleObserver<PowerOutput>() {
+            solarOutputProvider.getSolarOutput(getSolarCustomerId().get()).subscribe(new SingleObserver<PowerOutput>() {
                 @Override
                 public void onSubscribe(Disposable solarOutputDisposable) {
                     MainActivity.this.solarOutputDisposable = solarOutputDisposable;

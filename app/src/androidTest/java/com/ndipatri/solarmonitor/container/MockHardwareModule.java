@@ -2,7 +2,7 @@ package com.ndipatri.solarmonitor.container;
 
 import android.content.Context;
 
-import com.ndipatri.solarmonitor.services.BluetoothService;
+import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 
 import javax.inject.Singleton;
 
@@ -21,7 +21,7 @@ public class MockHardwareModule {
 
     @Provides
     @Singleton
-    BluetoothService providesBluetoothService(Context context) {
-        return mock(BluetoothService.class);
+    PanelScanProvider providesBluetoothService(Context context) {
+        return mock(PanelScanProvider.class);
     }
 }

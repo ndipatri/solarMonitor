@@ -1,0 +1,122 @@
+-dontpreverify
+-dontobfuscate
+-dontoptimize
+-keepattributes *Annotation*
+
+-dontwarn org.jacoco.**
+-dontwarn org.apache.commons.**
+-dontwarn org.apache.**
+-dontwarn javax.annotation.**
+-dontwarn javax.inject.**
+-dontwarn android.support.v4.**
+-dontwarn com.octo.android.**
+-dontwarn org.joda.time.**
+-dontwarn butterknife.**
+-dontwarn com.google.**
+-dontwarn com.octo.**
+-dontwarn junit.framework.TestCase
+-dontwarn com.squareup.okhttp.**
+-dontwarn com.squareup.**
+-dontwarn android.net.**
+-dontwarn org.codehaus.**
+-dontwarn org.ietf.**
+-dontwarn java.nio.file.**
+-dontwarn javax.xml.bind.DatatypeConverter
+-dontwarn org.w3c.dom.bootstrap.DOMImplementationRegistry
+-dontwarn org.easymock.**
+-dontwarn org.mockito.**
+-dontwarn sun.reflect.**
+-dontwarn sun.misc.**
+-dontwarn android.test.**
+-dontwarn com.android.support.**
+-dontwarn org.mockito.**
+-dontwarn org.hamcrest.**
+-dontwarn com.android.support.test.**
+-dontwarn org.slf4j.impl.*
+
+-dontnote
+
+-keep public class * extends android.app.Fragment
+-keep public class * extends android.support.v4.Fragment
+-keep public class * extends android.app.Activity
+-keep public class * extends android.app.Application
+-keep public class * extends android.app.Service
+-keep public class * extends android.content.BroadcastReceiver
+
+-keep public class * extends android.view.View {
+    public <init>(android.content.Context);
+    public <init>(android.content.Context, android.util.AttributeSet);
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+    public void set*(...);
+}
+
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet);
+}
+
+-keepclasseswithmembers class * {
+    public <init>(android.content.Context, android.util.AttributeSet, int);
+}
+
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+-keep class android.support.v4.** { *; }
+
+-dontwarn butterknife.internal.**
+
+-keep class **$$ViewInjector { *; }
+
+-keepnames class * { @butterknife.InjectView *;}
+
+-dontwarn butterknife.Views$InjectViewProcessor
+
+-dontwarn com.gc.materialdesign.views.**
+
+-keep class org.jmock.core.Constraint { *; }
+-keepclassmembers class org.jmock.core.Constraint { public *; }
+
+-keepclassmembers class org.mockito.mock.MockCreationSettings { public *; }
+
+-keep class org.mockito.** { *; }
+-keepclassmembers class org.mockito.** { public *; }
+
+-keep class org.hamcrest.** { *; }
+-keepclassmembers class org.hamcrest.** { public *; }
+
+-keep class com.ndipatri.** { *; }
+-keepclassmembers class com.ndipatri.** { public *; }
+
+-keep class org.apache.commons.codec.** { *; }
+-keepclassmembers class org.apache.commons.codec.** { public *; }
+
+-keep class org.joda.time.DateTime { *; }
+-keepclassmembers class org.joda.time.DateTime { public *; }
+
+# as per official recommendation: https://github.com/evant/gradle-retrolambda#proguard
+-dontwarn java.lang.invoke.*
+
+# Retrofit2 config
+-dontwarn retrofit2.**
+-keep class retrofit2.** { *; }
+-keepattributes Signature
+-keepattributes Exceptions
+
+# NJD TODO .. testing only
+-keepattributes *Annotation*
+-keep class retrofit.** { *; }
+-keepclasseswithmembers class * {
+@retrofit.http.* <methods>; }
+-keepattributes Signature
+#####
+
+
+-keep class com.ndipatri.iot.roboButton.RBApplication { *; }
+-keep class com.ndipatri.iot.roboButton.dagger.** { *; }
+
+
+#-keep class android.support.test.espresso.** { *; }
+#-keepclassmembers class android.support.test.espresso.** { public *; }
+
+
