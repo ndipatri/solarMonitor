@@ -31,9 +31,11 @@ import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.PositionAssertions.isAbove;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
+import static android.support.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Mockito.when;
 
@@ -69,23 +71,40 @@ public class MainActivityInstrumentationTest {
     // Cons - live endpoint and hardware need to be in a known state.  If a test fails, your scope is so large
     // it doesn't really tell you much, necessarily, about your code itself.
     @Test
-    public void retrieveSolarOutput_realHardware_realEndpoint() throws Exception {
+    public void findingPanel_realHardware_realEndpoint() throws Exception {
 
         activityRule.launchActivity(new Intent());
 
+        onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
+
         onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
 
-        // Need to wait for real hardware to scan for panel
-        Thread.sleep(5000);
+        // No need to wait for real hardware to scan for panel.. because our test thread is
+        // blocked on app's background thread
 
+        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (480557)")));
+    }
 
-        Thread.sleep(6000000);
+    @Test
+    public void loadingSolarOutput_realHardware_realEndpoint() throws Exception {
 
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("real bluetooth found!")));
+        activityRule.launchActivity(new Intent());
+
+        onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
+
+        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
+
+        // No need to wait for real hardware to scan for panel.. because our test thread is
+        // blocked on app's background thread
+
+        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (480557)")));
 
         onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
 
-        onView(withText("real bluetooth found!")).check(matches(not(isDisplayed())));
+        // No need to wait for real network call to get solar ourput.. because our test thread is
+        // blocked on app's background thread
+
+        onView(withText(endsWith("watts"))).check(matches(isDisplayed())).check(isAbove(withText("solar panel (480557)")));
     }
 
     // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out

@@ -56,7 +56,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void testInitializedProperly() {
+    public void testClickToFind() {
         // Creates, starts, resumes activity ...
         controller.setup();
 
@@ -80,7 +80,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void testClickOnBeaconScanFAB_waitingForScanResults() {
+    public void testFinding() {
         // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
         // and onResume() our activity.
 
@@ -111,7 +111,7 @@ public class MainActivityTest {
     }
 
     @Test
-    public void testClickOnBeaconScanFAB_scanResults() {
+    public void testClickToLoad() {
         // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
         // and onResume() our activity.
 
@@ -157,7 +157,7 @@ public class MainActivityTest {
     }
 
      @Test
-     public void testClickOnSolarUpdateFAB_waitingForUpdate() {
+     public void testLoading() {
          // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
          // and onResume() our activity.
 
@@ -187,7 +187,7 @@ public class MainActivityTest {
      }
 
     @Test
-    public void testClickOnSolarUpdateFAB_updateResults() {
+    public void testSolarOutput() {
         // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
         // and onResume() our activity.
 
