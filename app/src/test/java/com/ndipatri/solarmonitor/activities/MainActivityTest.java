@@ -214,7 +214,7 @@ public class MainActivityTest {
 
         assertEquals("solar panel (54321)",
                 ((TextView) activity.findViewById(R.id.detailTextView)).getText());
-        assertEquals("current: 123.0 watts, lifetime: 456.0 wattsHours.",
+        assertEquals("current: 123.0 watts, lifetime: 456.0 wattHours.",
                 ((TextView) activity.findViewById(R.id.mainTextView)).getText());
     }
 

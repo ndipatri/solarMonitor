@@ -50,14 +50,12 @@ public class PanelScanProvider {
 
     private boolean isConnectedToBeaconService = false;
     private boolean isScanning = false;
+    private boolean isInitialized = false;
 
     private Region scanRegion;
 
     public PanelScanProvider(Context context) {
         this.context = context;
-
-        initializeRegion();
-        initializeBeaconManager();
     }
 
     public Observable<PanelInfo> scanForNearbyPanel() {
@@ -100,6 +98,11 @@ public class PanelScanProvider {
     private void startBeaconScanning() {
         Log.d(TAG, "Starting AltBeacon discovery...");
 
+        if (!isInitialized) {
+            initialize();
+            isInitialized = true;
+        }
+
         isScanning = true;
 
         // if not connected to service, scanning will start once
@@ -107,6 +110,11 @@ public class PanelScanProvider {
         if (isConnectedToBeaconService) {
             startAltBeaconMonitoring();
         }
+    }
+
+    private void initialize() {
+        initializeRegion();
+        initializeBeaconManager();
     }
 
     private void stopBeaconScanning() {

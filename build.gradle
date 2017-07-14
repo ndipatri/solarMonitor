@@ -11,7 +11,7 @@ allprojects {
         currentBuildToolsVersion = "25.0.2"
         currentSupportLibVersion = "25.1.0"
         currentCompileSdkVersion = 25
-        currentMinSdkVersion = 24
+        currentMinSdkVersion = 19
         currentTargetSdkVersion = 25
     }
 }

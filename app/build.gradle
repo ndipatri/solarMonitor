@@ -63,20 +63,13 @@ final ESPRESSO_VERSION = '2.2.2';
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.android.support:support-compat:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:appcompat-v7:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:support-core-utils:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:support-core-ui:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:support-media-compat:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:support-fragment:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:recyclerview-v7:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:support-annotations:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support:design:' + rootProject.currentSupportLibVersion;
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-
     androidTestCompile("com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}") {
         exclude module: 'support-annotations'
     }
+
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:25.3.1'
 
     androidTestCompile("com.android.support.test.espresso:espresso-contrib:${ESPRESSO_VERSION}") {
         exclude module: 'support-annotations'
@@ -130,5 +123,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
-    compile 'com.ndipatri.iot:lib-google-proximity:1.0'
+    compile 'com.ndipatri.iot:lib-google-proximity:1.2'
 }
