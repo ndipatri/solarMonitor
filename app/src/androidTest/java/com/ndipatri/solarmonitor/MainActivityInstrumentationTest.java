@@ -13,6 +13,7 @@ import com.ndipatri.solarmonitor.dto.Overview;
 import com.ndipatri.solarmonitor.services.BluetoothService;
 import com.ndipatri.solarmonitor.services.SolarOutputService;
 
+import org.hamcrest.Matcher;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +47,8 @@ public class MainActivityInstrumentationTest {
     @Rule
     public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class, true, false);
 
+    // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
+    // while the background thread is running in our target application.
     @Rule
     public final AsyncTaskSchedulerRule asyncTaskSchedulerRule = new AsyncTaskSchedulerRule();
 
@@ -71,82 +75,65 @@ public class MainActivityInstrumentationTest {
     // Cons - live endpoint and hardware need to be in a known state.  If a test fails, your scope is so large
     // it doesn't really tell you much, necessarily, about your code itself.
     @Test
-    public void findingPanel_realHardware_realEndpoint() throws Exception {
+    public void findingPanel_realExternalCollaborators() throws Exception {
 
         activityRule.launchActivity(new Intent());
 
-        onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
-
-        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
-
-        // No need to wait for real hardware to scan for panel.. because our test thread is
-        // blocked on app's background thread
-
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (480557)")));
+        // we know what panelId our real beacon is emitting.
+        assertFindingPanelViews("480557");
     }
 
     @Test
-    public void loadingSolarOutput_realHardware_realEndpoint() throws Exception {
+    public void loadingSolarOutput_realExternalCollaborators() throws Exception {
 
         activityRule.launchActivity(new Intent());
 
-        onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
-
-        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
-
-        // No need to wait for real hardware to scan for panel.. because our test thread is
-        // blocked on app's background thread
-
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (480557)")));
-
-        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
-
-        // No need to wait for real network call to get solar ourput.. because our test thread is
-        // blocked on app's background thread
-
-        onView(withText(endsWith("watts"))).check(matches(isDisplayed())).check(isAbove(withText("solar panel (480557)")));
+        // we cannot predict the real solar output right now.
+        assertLoadingSolarOutputViews(null, "480557");
     }
 
     // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out
     // some hardware components that our app depends upon.  The service layer in this
     // mock ObjectGraph is still the real implementation and therefore needs the MockWebServer.
     //
-    // Pros - Allows us to run repeatable tests on a device that might not have all required production
-    // components (e.g. emulators do not have Bluetooth).  This is useful for IOT testing.
+    // Pros - Allows us to run repeatable tests.  Allows us to run tests on a device that might not
+    // have all required production components (e.g. emulators do not have Bluetooth).
+    // This is useful for IOT testing.
     //
     // Cons - Can be incorrectly used to replace proper unit testing.  Unit tests are a
-    // much faster way to test front-end components.  So we still use the real service
-    // layer here!
+    // much faster way to test front-end components.
     @Test
-    public void retrieveSolarOutput_mockHardware_mockEndpoint() throws Exception {
+    public void loadingSolarOutput_mockExternalCollaborators() throws Exception {
 
         // Context of the app under test.
         SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
 
-        // We can load the target application with a MockObjectGraph which will use real service
+        // We can bootstrap the target application with a MockObjectGraph(Dagger) which will use real service
         // layer but a mock hardware layer.
         MockObjectGraph mockObjectGraph = MockObjectGraph.Initializer.init(solarMonitorApp);
         solarMonitorApp.setObjectGraph(mockObjectGraph);
         mockObjectGraph.inject(this);
 
-        configureMockEndpoint(solarMonitorApp.getSolarCustomerId().get(), solarOutputService.getApiKey());
-        configureMockHardware();
+        // Now that the hardware layer has been mocked, configure it...
+        String mockPanelId = "998877";
+        configureMockHardware(mockPanelId);
+
+        // Configure MockWebServer to provide mock RESTful endpoint
+        Double mockSolarOutput = 123D;
+        configureMockEndpoint(mockSolarOutput, mockPanelId, solarOutputService.getApiKey());
 
         activityRule.launchActivity(new Intent());
 
         /**
          * Ok, now to actually do some testing!
          */
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("mock bluetooth found!")));
 
-        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
-
-        onView(withText("mock bluetooth found!")).check(matches(not(isDisplayed())));
-
-        onView(withText("123.0 watts")).check(matches(isDisplayed()));
+        // We know the panelId our mock hardware beacon is emitting, and we know the
+        // output that will be returned from our mocked RESTful endpoint.
+        assertLoadingSolarOutputViews(mockSolarOutput, mockPanelId);
     }
 
-    private void configureMockEndpoint(String solarCustomerId, String solarApiKey) throws MalformedURLException {
+    private void configureMockEndpoint(Double currentPowerValue, String solarCustomerId, String solarApiKey) throws MalformedURLException {
         // We deploy a MockWebServer to the same virtual machine as our
         // target APK
         MockSolarOutputServer mockSolarOutputServer = new MockSolarOutputServer();
@@ -154,7 +141,7 @@ public class MainActivityInstrumentationTest {
         GetOverviewResponse getOverviewResponse = new GetOverviewResponse();
 
         CurrentPower currentPower = new CurrentPower();
-        currentPower.setPower(123D);
+        currentPower.setPower(currentPowerValue);
 
         Overview overview = new Overview();
         overview.setCurrentPower(currentPower);
@@ -163,8 +150,8 @@ public class MainActivityInstrumentationTest {
 
         mockSolarOutputServer.
                 enqueueDesiredSolarOutputResponse(getOverviewResponse,
-                        solarCustomerId,
-                        solarApiKey);
+                                                  solarCustomerId,
+                                                  solarApiKey);
 
         mockSolarOutputServer.beginUsingMockServer();
 
@@ -173,12 +160,42 @@ public class MainActivityInstrumentationTest {
         SolarOutputService.API_ENDPOINT_BASE_URL = mockSolarOutputServer.getMockSolarOutputServerURL();
     }
 
-    private void configureMockHardware() {
+    private void configureMockHardware(String desiredPanelId) {
         when(bluetoothService.searchForNearbyPanels()).thenReturn(Single.create(new SingleOnSubscribe<String>() {
             @Override
             public void subscribe(SingleEmitter<String> subscriber) throws Exception {
-                subscriber.onSuccess("mock bluetooth found!");
+                subscriber.onSuccess(desiredPanelId);
             }
         }));
+    }
+
+    private void assertFindingPanelViews(String expectedPanelId) {
+        onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
+
+        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
+
+        // No need to wait for real hardware to scan for panel.. because our test thread is
+        // blocked on app's background thread
+
+        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (" + expectedPanelId + ")")));
+    }
+
+    private void assertLoadingSolarOutputViews(Double expectedSolarOutput, String expectedPanelId) {
+        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
+
+        // No need to wait for real hardware to scan for panel.. because our test thread is
+        // blocked on app's background thread
+
+        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
+
+        // No need to wait for real network call to get solar output.. because our test thread is
+        // blocked on app's background thread
+
+        Matcher<String> expectedSolarOutputStringMatcher =
+                (expectedSolarOutput == null ? endsWith("watts") : is(expectedSolarOutput + " watts"));
+
+        onView(withText(expectedSolarOutputStringMatcher))
+                .check(matches(isDisplayed()))
+                .check(isAbove(withText("solar panel (" + expectedPanelId + ")")));
     }
 }

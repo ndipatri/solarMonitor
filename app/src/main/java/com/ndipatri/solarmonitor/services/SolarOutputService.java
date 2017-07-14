@@ -21,7 +21,7 @@ import retrofit2.http.Query;
 
 public class SolarOutputService {
 
-    public static final int SOLAR_OUTPUT_TIMEOUT_SECONDS = 10;
+    public static final int SOLAR_OUTPUT_TIMEOUT_SECONDS = 20;
 
     public static String API_ENDPOINT_BASE_URL = "https://monitoringapi.solaredge.com/";
 
@@ -53,7 +53,9 @@ public class SolarOutputService {
 
     public Single<Double> getSolarOutputInWatts(String customerId) {
         return getSolarOutputRESTEndpoint()
-                .flatMap(endpoint -> endpoint.getOverview(customerId, apiKey))
+                .flatMap(endpoint -> {
+                    return endpoint.getOverview(customerId, apiKey);
+                })
                 .flatMap(getOverviewResponse -> Single.create((SingleOnSubscribe<Double>) subscriber -> {
 
                     Double currentPower = getOverviewResponse.getOverview().getCurrentPower().getPower();
@@ -61,7 +63,7 @@ public class SolarOutputService {
                 }))
 
                 // NJD TODO - comfort delay - remove
-                .delay(5000, TimeUnit.MILLISECONDS)
+                .delay(3000, TimeUnit.MILLISECONDS)
 
                 .timeout(SOLAR_OUTPUT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());

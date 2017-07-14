@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ProgressBar;
@@ -27,6 +28,8 @@ import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     @Inject SolarOutputService solarOutputService;
     @Inject BluetoothService bluetoothService;
@@ -220,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onError(Throwable e) {
+                    Log.e(TAG, "Exception while retrieving solar output.", e);
                     Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
                 }
             });
