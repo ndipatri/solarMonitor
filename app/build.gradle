@@ -24,16 +24,20 @@ android {
         }
     }
 
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion rootProject.ext.get("currentCompileSdkVersion")
+    buildToolsVersion rootProject.ext.get("currentBuildToolsVersion")
+
     defaultConfig {
         applicationId "com.ndipatri.solarmonitor"
-        minSdkVersion 24
-        targetSdkVersion 25
+
+        minSdkVersion rootProject.ext.get("currentMinSdkVersion")
+        targetSdkVersion rootProject.ext.get("currentTargetSdkVersion")
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+
+        multiDexEnabled true
 
         // pull in properties from 'gradle.properties' in 'app' directory
         resValue("string", "solarEdgeApiKey", solarEdgeApiKey)
@@ -54,14 +58,34 @@ android {
     }
 }
 
+final ESPRESSO_VERSION = '2.2.2';
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:25.1.0'
+
+    compile 'com.android.support:support-compat:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:appcompat-v7:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:support-core-utils:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:support-core-ui:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:support-media-compat:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:support-fragment:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:recyclerview-v7:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:support-annotations:' + rootProject.currentSupportLibVersion;
+    compile 'com.android.support:design:' + rootProject.currentSupportLibVersion;
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.3.1'
+
+    androidTestCompile("com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}") {
+        exclude module: 'support-annotations'
+    }
+
+    androidTestCompile("com.android.support.test.espresso:espresso-contrib:${ESPRESSO_VERSION}") {
+        exclude module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'appcompat'
+        exclude group: 'com.android.support', module: 'support-v4'
+        exclude module: 'recyclerview-v7'
+        exclude module: 'design'
+    }
+
     compile 'com.google.code.gson:gson:2.4'
     compile 'io.reactivex.rxjava2:rxjava:2.0.5'
     compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
@@ -107,5 +131,4 @@ dependencies {
     compile 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
     compile 'com.ndipatri.iot:lib-google-proximity:1.0'
-
 }

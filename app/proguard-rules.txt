@@ -15,6 +15,9 @@
 -dontwarn com.google.**
 -dontwarn com.octo.**
 -dontwarn junit.framework.TestCase
+-dontwarn org.junit.rules.**
+-dontwarn org.junit.runners.**
+-dontwarn org.junit.internal.runners.**
 -dontwarn com.squareup.okhttp.**
 -dontwarn com.squareup.**
 -dontwarn android.net.**
@@ -42,6 +45,9 @@
 -keep public class * extends android.app.Application
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
+
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**
 
 -keep public class * extends android.view.View {
     public <init>(android.content.Context);
@@ -82,8 +88,17 @@
 -keep class org.mockito.** { *; }
 -keepclassmembers class org.mockito.** { public *; }
 
+-keep class java.beans.** { *; }
+-keepclassmembers class java.beans.** { public *; }
+
 -keep class org.hamcrest.** { *; }
 -keepclassmembers class org.hamcrest.** { public *; }
+
+-keep class org.easymock.IArgumentMatcher { *; }
+-keepclassmembers class org.easymock.** { public *; }
+
+-keep class org.jmock.** { *; }
+-keepclassmembers class org.jmock.** { public *; }
 
 -keep class com.ndipatri.** { *; }
 -keepclassmembers class com.ndipatri.** { public *; }

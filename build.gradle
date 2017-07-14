@@ -5,6 +5,15 @@ allprojects {
         jcenter()
         maven { url 'https://dl.bintray.com/ndipatri/maven' }
     }
+
+    ext {
+        currentGradleVersion = "2.14.1"
+        currentBuildToolsVersion = "25.0.2"
+        currentSupportLibVersion = "25.1.0"
+        currentCompileSdkVersion = 25
+        currentMinSdkVersion = 24
+        currentTargetSdkVersion = 25
+    }
 }
 
 subprojects {
