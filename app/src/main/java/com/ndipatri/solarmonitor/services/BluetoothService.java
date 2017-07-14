@@ -30,7 +30,7 @@ public class BluetoothService {
         })
 
         // NJD TODO - remove when real BT scanning is done...
-        .delay(5000, TimeUnit.MILLISECONDS) // simulate scan delay until we actually do bluetooth
+        .delay(4000, TimeUnit.MILLISECONDS) // simulate scan delay until we actually do bluetooth
 
         .timeout(NEARBY_PANEL_SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
