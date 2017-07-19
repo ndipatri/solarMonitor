@@ -63,10 +63,6 @@ public class PanelScanProvider {
         startBeaconScanning();
 
         return beaconFoundSubject
-
-            // comfort delay
-            .delay(3000, TimeUnit.MILLISECONDS) // simulate scan delay until we actually do bluetooth
-
             .timeout(NEARBY_PANEL_SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }

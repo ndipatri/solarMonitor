@@ -35,9 +35,10 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 
         multiDexEnabled true
+
+        testProguardFile "proguard-test-rules.txt"
 
         // pull in properties from 'gradle.properties' in 'app' directory
         resValue("string", "solarEdgeApiKey", solarEdgeApiKey)
@@ -49,11 +50,15 @@ android {
             minifyEnabled true
             debuggable false
             signingConfig signingConfigs.release
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
         debug {
             minifyEnabled true
             debuggable true
             signingConfig signingConfigs.dev
+
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
 }

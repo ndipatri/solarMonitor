@@ -8,7 +8,6 @@
 -dontwarn
 
 
-
 -dontwarn org.apache.http.**
 -dontwarn android.net.http.AndroidHttpClient
 -dontwarn com.google.android.gms.**
@@ -142,24 +141,11 @@
 
 -dontwarn com.gc.materialdesign.views.**
 
-# for testing - start
-
 -keep class io.reactivex.schedulers.Schedulers { *; }
 -keepclassmembers class io.reactivex.schedulers.Schedulers { public *; }
 
 -keep class io.reactivex.** { *; }
 -keepclassmembers class io.reactivex.** { public *; }
-
--keep class com.f2prateek.rx.preferences2.** { *; }
--keepclassmembers class com.f2prateek.rx.preferences2.** { public *; }
-
--keep class okhttp3.mockwebserver.** { *; }
--keepclassmembers class okhttp3.mockwebserver.** { public *; }
-
--keep class com.google.gson.** { *; }
--keepclassmembers class com.google.gson.** { public *; }
-
-# for testing - stop
 
 -keep class org.jmock.core.Constraint { *; }
 -keepclassmembers class org.jmock.core.Constraint { public *; }

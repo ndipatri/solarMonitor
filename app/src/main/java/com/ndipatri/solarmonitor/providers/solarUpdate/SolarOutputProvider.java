@@ -63,9 +63,6 @@ public class SolarOutputProvider {
                     subscriber.onSuccess(new PowerOutput(currentPower, lifeTimeEnergy));
                 }))
 
-                // NJD TODO - comfort delay - remove
-                .delay(5000, TimeUnit.MILLISECONDS)
-
                 .timeout(SOLAR_OUTPUT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }

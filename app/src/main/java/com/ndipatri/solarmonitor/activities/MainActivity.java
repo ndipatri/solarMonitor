@@ -224,8 +224,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onComplete() {
-                MainActivity.this.panelScanDisposable.dispose();
-                MainActivity.this.panelScanDisposable = null;
+                if (null != panelScanDisposable) {
+                    panelScanDisposable.dispose();
+                }
+
+                panelScanDisposable = null;
             }
         });
     }
