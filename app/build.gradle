@@ -71,6 +71,7 @@ dependencies {
     androidTestCompile("com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}") {
         exclude module: 'support-annotations'
     }
+    compile "com.android.support.test.espresso:espresso-idling-resource:${ESPRESSO_VERSION}"
 
     compile 'com.android.support:appcompat-v7:25.3.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'

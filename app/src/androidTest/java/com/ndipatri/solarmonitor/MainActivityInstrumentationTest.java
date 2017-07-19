@@ -1,11 +1,14 @@
 package com.ndipatri.solarmonitor;
 
 import android.content.Intent;
+import android.support.test.espresso.Espresso;
+import android.support.test.espresso.IdlingResource;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.ndipatri.solarmonitor.activities.MainActivity;
 import com.ndipatri.solarmonitor.container.MockObjectGraph;
+import com.ndipatri.solarmonitor.container.TestObjectGraph;
 import com.ndipatri.solarmonitor.mocks.MockSolarOutputServer;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
@@ -52,12 +55,13 @@ public class MainActivityInstrumentationTest {
     @Rule
     public final AsyncTaskSchedulerRule asyncTaskSchedulerRule = new AsyncTaskSchedulerRule();
 
-    @Inject SolarOutputProvider solarOutputService;
-    @Inject PanelScanProvider bluetoothService;
+    @Inject SolarOutputProvider solarOutputProvider;
+    @Inject PanelScanProvider panelScanProvider;
+
+    private IdlingResource idlingResource;
 
     @Before
     public void setUp() throws Exception {
-
         // Context of the app under test.
         SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
 
@@ -76,6 +80,19 @@ public class MainActivityInstrumentationTest {
     // it doesn't really tell you much, necessarily, about your code itself.
     @Test
     public void findingPanel_realExternalCollaborators() throws Exception {
+
+        // Context of the app under test.
+        SolarMonitorApp solarMonitorApp = (SolarMonitorApp) getInstrumentation().getTargetContext().getApplicationContext();
+
+        // We bootstrap the production ObjectGraph and inject it into this test class so we can access
+        // production components
+        TestObjectGraph testObjectGraph = TestObjectGraph.Initializer.init(solarMonitorApp);
+        solarMonitorApp.setObjectGraph(testObjectGraph);
+        testObjectGraph.inject(this);
+
+        // For the IdlingResource feature, we need to instrument the real component, unfortunately.
+        IdlingResource idlingResource = this.panelScanProvider.getIdlingResource();
+        Espresso.registerIdlingResources(idlingResource);
 
         activityRule.launchActivity(new Intent());
 
@@ -122,7 +139,7 @@ public class MainActivityInstrumentationTest {
         // Configure MockWebServer to provide mock RESTful endpoint
         Double mockSolarOutput = 123D;
         Double mockLifetimeOutput = 456D;
-        configureMockEndpoint(mockSolarOutput, mockLifetimeOutput, mockPanelId, solarOutputService.getApiKey());
+        configureMockEndpoint(mockSolarOutput, mockLifetimeOutput, mockPanelId, solarOutputProvider.getApiKey());
 
         activityRule.launchActivity(new Intent());
 
@@ -167,7 +184,7 @@ public class MainActivityInstrumentationTest {
     }
 
     private void configureMockHardware(String desiredPanelDesc, String desiredPanelId) {
-        when(bluetoothService.scanForNearbyPanel()).thenReturn(new Observable<PanelInfo>() {
+        when(panelScanProvider.scanForNearbyPanel()).thenReturn(new Observable<PanelInfo>() {
             @Override
             protected void subscribeActual(Observer<? super PanelInfo> observer) {
                 PanelInfo panelInfo = new PanelInfo(desiredPanelDesc, desiredPanelId);

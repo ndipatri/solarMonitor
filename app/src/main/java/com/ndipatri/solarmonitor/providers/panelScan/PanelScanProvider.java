@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
+import android.support.test.espresso.IdlingResource;
 import android.util.Log;
 
 import com.google.common.base.Optional;
@@ -26,6 +28,7 @@ import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.MaybeObserver;
 import io.reactivex.Observable;
@@ -53,6 +56,8 @@ public class PanelScanProvider {
     private boolean isInitialized = false;
 
     private Region scanRegion;
+
+    private PanelScanProviderIdlingResource idlingResource;
 
     public PanelScanProvider(Context context) {
         this.context = context;
@@ -106,6 +111,10 @@ public class PanelScanProvider {
         if (isConnectedToBeaconService) {
             startAltBeaconMonitoring();
         }
+
+        if (null != idlingResource) {
+            idlingResource.updateIdleState(!isScanning);
+        }
     }
 
     private void initialize() {
@@ -126,6 +135,10 @@ public class PanelScanProvider {
         }
 
         isScanning = false;
+
+        if (null != idlingResource) {
+            idlingResource.updateIdleState(!isScanning);
+        }
     }
 
     private void startAltBeaconMonitoring() {
@@ -208,6 +221,9 @@ public class PanelScanProvider {
             @Override
             public void onError(Throwable e) {
                 Log.e(TAG, "Error retrieving attachment for region '" + region + "'.  Doing nothing.", e);
+
+                stopBeaconScanning();
+                beaconFoundSubject.onComplete();
             }
 
             @Override
@@ -244,5 +260,43 @@ public class PanelScanProvider {
         }
 
         return Bytes.concat(namespaceBytes, instanceBytes);
+    }
+
+    public IdlingResource getIdlingResource() {
+        if (null == idlingResource) {
+            idlingResource = new PanelScanProviderIdlingResource();
+        }
+
+        return idlingResource;
+    }
+
+    public class PanelScanProviderIdlingResource implements IdlingResource {
+
+        @Nullable
+        private volatile ResourceCallback resourceCallback;
+
+        private boolean isIdle;
+
+        @Override
+        public String getName() {
+            return this.getClass().getName();
+        }
+
+        @Override
+        public boolean isIdleNow() {
+            return isIdle;
+        }
+
+        @Override
+        public void registerIdleTransitionCallback(ResourceCallback resourceCallback) {
+            this.resourceCallback = resourceCallback;
+        }
+
+        public void updateIdleState(boolean isIdle) {
+            this.isIdle = isIdle;
+            if (isIdle && null != resourceCallback) {
+                resourceCallback.onTransitionToIdle();
+            }
+        }
     }
 }

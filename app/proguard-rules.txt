@@ -154,6 +154,9 @@
 -keep class okhttp3.mockwebserver.** { *; }
 -keepclassmembers class okhttp3.mockwebserver.** { public *; }
 
+-keep class android.support.test.** { *; }
+-keepclassmembers class android.support.test.** { public *; }
+
 -keep class com.google.gson.** { *; }
 -keepclassmembers class com.google.gson.** { public *; }
 
