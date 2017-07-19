@@ -142,8 +142,6 @@
 
 -dontwarn com.gc.materialdesign.views.**
 
-# for testing - start
-
 -keep class io.reactivex.schedulers.Schedulers { *; }
 -keepclassmembers class io.reactivex.schedulers.Schedulers { public *; }
 
@@ -158,8 +156,6 @@
 
 -keep class com.google.gson.** { *; }
 -keepclassmembers class com.google.gson.** { public *; }
-
-# for testing - stop
 
 -keep class org.jmock.core.Constraint { *; }
 -keepclassmembers class org.jmock.core.Constraint { public *; }
