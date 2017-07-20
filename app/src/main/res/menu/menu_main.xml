@@ -7,4 +7,9 @@
         android:orderInCategory="100"
         android:title="@string/action_settings"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_configure"
+        android:orderInCategory="100"
+        android:title="@string/configure_nearby_panel"
+        app:showAsAction="never" />
 </menu>

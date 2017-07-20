@@ -147,6 +147,8 @@ public class MainActivityInstrumentationTest {
          * Ok, now to actually do some testing!
          */
 
+        //Thread.sleep(6000000);
+
         // We know the panelId our mock hardware beacon is emitting, and we know the
         // output that will be returned from our mocked RESTful endpoint.
         assertLoadingSolarOutputViews(mockSolarOutput, mockLifetimeOutput, mockPanelId);

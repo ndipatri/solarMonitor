@@ -77,6 +77,11 @@ public class MainActivity extends AppCompatActivity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        } else
+        if (id == R.id.action_configure) {
+
+
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -194,6 +199,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void scanForNearbyPanels() {
 
+        // NJD TODO - shoudl pass in Eddystone Beacon Namespace for our App here.. just
+        // so the panelProvider is really generic... so it's not so bad when we swap it out
+        // for mock testing.
         panelScanProvider.scanForNearbyPanel().subscribe(new Observer<PanelInfo>() {
             @Override
             public void onSubscribe(Disposable d) {

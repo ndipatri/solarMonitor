@@ -7,4 +7,6 @@
     <string name="click_to_find_nearby_solar_panel">Click to find nearby Solar panel.</string>
     <string name="welcome_back">Welcome Back!</string>
     <string name="error_please_try_again">Error. Please try again.</string>
+    <string name="configure_nearby_panel">Configure Nearby Panel</string>
+    <string name="configure_panel">Configure Nearby Panel</string>
 </resources>

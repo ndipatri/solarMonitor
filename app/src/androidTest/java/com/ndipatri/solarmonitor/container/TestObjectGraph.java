@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.ndipatri.solarmonitor.activities.MainActivity;
 import com.ndipatri.solarmonitor.MainActivityInstrumentationTest;
+import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment;
 
 import javax.inject.Singleton;
 
@@ -13,6 +14,7 @@ import dagger.Component;
 @Component(modules={ServiceModule.class,
                     HardwareModule.class})
 public interface TestObjectGraph extends ObjectGraph {
+    void inject(ConfigurePanelDialogFragment fragment);
     void inject(MainActivity activity);
     void inject(MainActivityInstrumentationTest test);
 

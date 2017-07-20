@@ -3,6 +3,7 @@ package com.ndipatri.solarmonitor.container;
 import android.content.Context;
 
 import com.ndipatri.solarmonitor.activities.MainActivity;
+import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment;
 
 import javax.inject.Singleton;
 
@@ -13,6 +14,7 @@ import dagger.Component;
                     HardwareModule.class})
 public interface ObjectGraph {
     void inject(MainActivity thingy);
+    void inject(ConfigurePanelDialogFragment fragment);
 
     final class Initializer {
         public static ObjectGraph init(Context context) {
