@@ -2,11 +2,9 @@ package com.ndipatri.solarmonitor.activities;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,70 +21,70 @@ import javax.inject.Inject;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observer;
+import io.reactivex.MaybeObserver;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
+import static com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.CONFIGURE;
+import static com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.LOAD;
+import static com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.LOADED;
+import static com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.LOADING;
+import static com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.SCAN;
+import static com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.SCANNING;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    //region dependency injection
     @Inject
     SolarOutputProvider solarOutputProvider;
     @Inject
     PanelScanProvider panelScanProvider;
+    //endregion
 
+    //region view injection
     @BindView(R.id.refreshProgressBar)
     ProgressBar refreshProgressBar;
+
     @BindView(R.id.mainTextView)
     TextView mainTextView;
+
     @BindView(R.id.detailTextView)
     TextView detailTextView;
-    @BindView(R.id.solarUpdateFAB)
-    FloatingActionButton solarUpdateFAB;
-    @BindView(R.id.beaconScanFAB)
-    FloatingActionButton beaconScanFAB;
 
-    private Disposable panelScanDisposable;
-    private Disposable solarOutputDisposable;
+    @BindView(R.id.loadFAB)
+    FloatingActionButton loadFAB;
+
+    @BindView(R.id.scanFAB)
+    FloatingActionButton scanFAB;
+
+    @BindView(R.id.configureFAB)
+    FloatingActionButton configureFAB;
+    //endregion
+
+    //region local state
+    private Disposable disposable;
 
     private PowerOutput currentPowerOutput;
+
+    enum USER_STATE {
+        SCAN,              // user has yet to find nearby panel
+        SCANNING,          // user is scanning for nearby panel
+        CONFIGURE,         // panel found but it needs to be configured.
+        LOAD,              // user has nearby panel, but hasn't loaded output
+        LOADING,           // user is loading solar output
+        LOADED,            // user is viewing loaded solar output
+        ;
+    }
+    private USER_STATE userState;
+    // endregion
 
     public MainActivity() {
         SolarMonitorApp.getInstance().getObjectGraph().inject(this);
     }
-
-    //region menuSetup
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        } else
-        if (id == R.id.action_configure) {
-
-
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-    //endregion
 
     //region getSet
     public void setSolarOutputProvider(SolarOutputProvider solarOutputProvider) {
@@ -99,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
     //endregion
 
     //region lifecyle
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,15 +105,18 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        beaconScanFAB.setOnClickListener(viewClicked -> scanForNearbyPanels());
-        solarUpdateFAB.setOnClickListener(viewClicked -> updateSolarOutput());
-
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
+        if (getSolarCustomerId().isSet()) {
+            userState = LOAD;
+        } else {
+            userState = SCAN;
+        }
 
         updateStatusViews();
     }
@@ -125,147 +125,230 @@ public class MainActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
 
-        if (null != panelScanDisposable) {
-            panelScanDisposable.dispose();
+        if (null != disposable) {
+            disposable.dispose();
         }
-        if (null != solarOutputDisposable) {
-            solarOutputDisposable.dispose();
+    }
+
+    @Override
+    protected void handleConfigureFragmentDismiss() {
+        onResume();
+    }
+
+    //endregion
+
+    //region view processing
+    private void updateStatusViews() {
+
+        switch (userState) {
+            case SCAN:
+                refreshProgressBar.setVisibility(INVISIBLE);
+
+                mainTextView.setVisibility(VISIBLE);
+                mainTextView.setText(getString(R.string.click_to_find_nearby_solar_panel));
+
+                detailTextView.setVisibility(INVISIBLE);
+
+                showScanButton();
+                hideLoadButton();
+                hideConfigureButton();
+
+                break;
+
+            case SCANNING:
+                refreshProgressBar.setVisibility(VISIBLE);
+
+                mainTextView.setVisibility(VISIBLE);
+                mainTextView.setText(getString(R.string.finding_nearby_solar_panel));
+
+                detailTextView.setVisibility(INVISIBLE);
+
+                hideScanButton();
+                hideLoadButton();
+                hideConfigureButton();
+                break;
+
+            case CONFIGURE:
+                refreshProgressBar.setVisibility(INVISIBLE);
+
+                mainTextView.setVisibility(VISIBLE);
+                mainTextView.setText(getString(R.string.click_to_configure_nearby_panel));
+
+                detailTextView.setVisibility(INVISIBLE);
+
+                hideScanButton();
+                hideLoadButton();
+                showConfigureButton();
+                break;
+
+            case LOAD:
+                refreshProgressBar.setVisibility(INVISIBLE);
+
+                mainTextView.setVisibility(VISIBLE);
+                mainTextView.setText(getString(R.string.click_to_load_solar_output));
+
+                detailTextView.setVisibility(VISIBLE);
+                detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
+
+                showScanButton();
+                showLoadButton();
+                hideConfigureButton();
+                break;
+
+            case LOADING:
+                refreshProgressBar.setVisibility(VISIBLE);
+
+                mainTextView.setVisibility(VISIBLE);
+                mainTextView.setText(getString(R.string.loading_solar_output));
+
+                detailTextView.setVisibility(VISIBLE);
+                detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
+
+                hideScanButton();
+                hideLoadButton();
+                hideConfigureButton();
+                break;
+
+            case LOADED:
+                refreshProgressBar.setVisibility(INVISIBLE);
+
+                mainTextView.setVisibility(VISIBLE);
+                StringBuilder sbuf = new StringBuilder()
+                        .append("current: ")
+                        .append(currentPowerOutput.getCurrentPowerInWatts())
+                        .append(" watts, ")
+
+                        .append("lifetime: ")
+                        .append(currentPowerOutput.getLifeTimeEnergyInWattHours())
+                        .append(" wattHours.");
+                mainTextView.setText(sbuf.toString());
+
+                detailTextView.setVisibility(VISIBLE);
+                detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
+
+                showScanButton();
+                showLoadButton();
+                hideConfigureButton();
+                break;
         }
+    }
+
+    private void showLoadButton() {
+        loadFAB.setVisibility(View.VISIBLE);
+        loadFAB.setOnClickListener(viewClicked -> {
+
+            userState = LOADING;
+            loadSolarOutput();
+            updateStatusViews();
+        });
+    }
+
+    private void hideLoadButton() {
+        loadFAB.setVisibility(View.INVISIBLE);
+    }
+
+    private void showScanButton() {
+        scanFAB.setVisibility(View.VISIBLE);
+        scanFAB.setOnClickListener(viewClicked -> {
+
+            userState = SCANNING;
+            scanForNearbyPanel();
+            updateStatusViews();
+        });
+    }
+
+    private void hideScanButton() {
+        scanFAB.setVisibility(View.INVISIBLE);
+    }
+
+    private void showConfigureButton() {
+        configureFAB.setVisibility(View.VISIBLE);
+        configureFAB.setOnClickListener(viewClicked -> {
+
+            userState = SCAN;
+            launchConfigureFragment();
+        });
+    }
+
+    private void hideConfigureButton() {
+        configureFAB.setVisibility(View.INVISIBLE);
     }
     //endregion
 
-    private void updateStatusViews() {
+    //region background calls
+    private void scanForNearbyPanel() {
 
-        if (null != panelScanDisposable) {
-            // scanning for nearby panels
-
-            refreshProgressBar.setVisibility(VISIBLE);
-            mainTextView.setVisibility(VISIBLE);
-            detailTextView.setVisibility(INVISIBLE);
-
-            mainTextView.setText(getString(R.string.finding_nearby_solar_panel));
-        } else if (null != solarOutputDisposable) {
-            // loading solar output
-
-            refreshProgressBar.setVisibility(VISIBLE);
-            mainTextView.setVisibility(VISIBLE);
-            detailTextView.setVisibility(VISIBLE);
-
-            mainTextView.setText(getString(R.string.loading_solar_output));
-            detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
-        } else if (!getSolarCustomerId().isSet()) {
-            // no customerId set
-
-            refreshProgressBar.setVisibility(INVISIBLE);
-            mainTextView.setVisibility(VISIBLE);
-            detailTextView.setVisibility(INVISIBLE);
-
-            mainTextView.setText(getString(R.string.click_to_find_nearby_solar_panel));
-        } else if (null != currentPowerOutput) {
-            // existing wattage available
-
-            refreshProgressBar.setVisibility(INVISIBLE);
-            mainTextView.setVisibility(VISIBLE);
-            detailTextView.setVisibility(VISIBLE);
-
-            StringBuilder sbuf = new StringBuilder()
-                    .append("current: ")
-                    .append(currentPowerOutput.getCurrentPowerInWatts())
-                    .append(" watts, ")
-
-                    .append("lifetime: ")
-                    .append(currentPowerOutput.getLifeTimeEnergyInWattHours())
-                    .append(" wattHours.");
-
-            mainTextView.setText(sbuf.toString());
-            detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
-        } else {
-            // wattage not available
-
-            refreshProgressBar.setVisibility(INVISIBLE);
-            mainTextView.setVisibility(VISIBLE);
-            detailTextView.setVisibility(VISIBLE);
-
-            mainTextView.setText(getString(R.string.click_to_load_solar_output));
-            detailTextView.setText("solar panel (" + getSolarCustomerId().get() + ")");
-        }
-
-        if (getSolarCustomerId().isSet()) {
-            solarUpdateFAB.setVisibility(VISIBLE);
-        } else {
-            solarUpdateFAB.setVisibility(INVISIBLE);
-        }
-    }
-
-    private void scanForNearbyPanels() {
-
-        // NJD TODO - shoudl pass in Eddystone Beacon Namespace for our App here.. just
-        // so the panelProvider is really generic... so it's not so bad when we swap it out
-        // for mock testing.
-        panelScanProvider.scanForNearbyPanel().subscribe(new Observer<PanelInfo>() {
+        panelScanProvider.scanForNearbyPanel().subscribe(new MaybeObserver<PanelInfo>() {
             @Override
-            public void onSubscribe(Disposable d) {
-                MainActivity.this.panelScanDisposable = panelScanDisposable;
-                updateStatusViews();
+            public void onSubscribe(Disposable disposable) {
+                MainActivity.this.disposable = disposable;
             }
 
             @Override
-            public void onNext(PanelInfo panelInfo) {
-                if (panelInfo.getCustomerId().isPresent()) {
-                    Log.d(TAG, "Panel found with customerId configured.");
+            public void onSuccess(PanelInfo panelInfo) {
+                if (panelInfo.getCustomerId().isPresent() && panelInfo.getCustomerId().get().length() == 6) {
+                    Log.d(TAG, "Panel found with customerId configured (" + panelInfo.getCustomerId().get() + ").");
 
                     SolarMonitorApp.getInstance().setSolarCustomerId(panelInfo.getCustomerId().get());
 
-                    MainActivity.this.panelScanDisposable = null;
+                    MainActivity.this.disposable = null;
                     MainActivity.this.currentPowerOutput = null;
 
+                    userState = LOAD;
                     updateStatusViews();
                 } else {
                     Log.d(TAG, "Panel found, but it needs to be configured.");
+
+                    MainActivity.this.disposable = null;
+                    MainActivity.this.currentPowerOutput = null;
+
+                    userState = CONFIGURE;
+                    updateStatusViews();
                 }
             }
 
             @Override
             public void onError(Throwable e) {
                 Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
+                updateStatusViews();
             }
 
             @Override
             public void onComplete() {
-                if (null != panelScanDisposable) {
-                    panelScanDisposable.dispose();
-                }
-
-                panelScanDisposable = null;
+                disposable = null;
+                updateStatusViews();
             }
         });
     }
 
-    private void updateSolarOutput() {
+    private void loadSolarOutput() {
         if (getSolarCustomerId().isSet()) {
 
             solarOutputProvider.getSolarOutput(getSolarCustomerId().get()).subscribe(new SingleObserver<PowerOutput>() {
                 @Override
-                public void onSubscribe(Disposable solarOutputDisposable) {
-                    MainActivity.this.solarOutputDisposable = solarOutputDisposable;
-                    updateStatusViews();
+                public void onSubscribe(Disposable disposable) {
+                    MainActivity.this.disposable = disposable;
                 }
 
                 @Override
                 public void onSuccess(PowerOutput currentPowerOutput) {
-                    MainActivity.this.solarOutputDisposable = null;
+                    MainActivity.this.disposable = null;
                     MainActivity.this.currentPowerOutput = currentPowerOutput;
 
+                    userState = LOADED;
                     updateStatusViews();
                 }
 
                 @Override
                 public void onError(Throwable e) {
                     Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
+
+                    updateStatusViews();
                 }
             });
         }
     }
+    //endregion
 
     private Preference<String> getSolarCustomerId() {
         return SolarMonitorApp.getInstance().getSolarCustomerId();

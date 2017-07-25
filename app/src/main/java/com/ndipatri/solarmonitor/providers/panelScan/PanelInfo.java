@@ -14,7 +14,7 @@ public class PanelInfo {
 
     public PanelInfo(final String description, final String customerId) {
         this.description = description;
-        this.customerId = Optional.of(customerId);
+        this.customerId = Optional.ofNullable(customerId);
     }
 
     public PanelInfo(String[] attachment) {
@@ -23,7 +23,7 @@ public class PanelInfo {
     }
 
     public String[] getAttachment() {
-        return new String[]{description, customerId.get()};
+        return new String[]{description, (customerId.isPresent() ? customerId.get() : null)};
     }
 
     public String getDescription() {

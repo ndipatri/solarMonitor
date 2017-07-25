@@ -200,7 +200,7 @@ public class MainActivityInstrumentationTest {
     private void assertFindingPanelViews(String expectedPanelId) {
         onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
 
-        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
+        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click());
 
         // No need to wait for real hardware to scan for panel.. because our test thread is
         // blocked on app's background thread
@@ -209,12 +209,12 @@ public class MainActivityInstrumentationTest {
     }
 
     private void assertLoadingSolarOutputViews(Double expectedSolarOutput, Double expectedLifetimeOutput, String expectedPanelId) {
-        onView(withId(R.id.beaconScanFAB)).check(matches(isDisplayed())).perform(click());
+        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click());
 
         // No need to wait for real hardware to scan for panel.. because our test thread is
         // blocked on app's background thread
 
-        onView(withId(R.id.solarUpdateFAB)).check(matches(isDisplayed())).perform(click());
+        onView(withId(R.id.loadFAB)).check(matches(isDisplayed())).perform(click());
 
         // No need to wait for real network call to get solar output.. because our test thread is
         // blocked on app's background thread

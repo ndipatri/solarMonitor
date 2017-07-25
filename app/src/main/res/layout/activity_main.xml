@@ -20,10 +20,11 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main" />
+    <include layout="@layout/content_main"
+        android:id="@+id/include" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/solarUpdateFAB"
+        android:id="@+id/loadFAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
@@ -31,11 +32,21 @@
         app:srcCompat="@android:drawable/ic_menu_upload" />
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/beaconScanFAB"
+        android:id="@+id/scanFAB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|start"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@android:drawable/ic_menu_compass" />
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/configureFAB"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_margin="@dimen/fab_margin"
+        app:layout_anchor="@+id/include"
+        app:layout_anchorGravity="bottom|center_horizontal"
+        app:srcCompat="@android:drawable/ic_menu_upload" />
 
 </android.support.design.widget.CoordinatorLayout>

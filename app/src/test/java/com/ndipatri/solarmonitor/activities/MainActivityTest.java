@@ -24,6 +24,7 @@ import org.robolectric.util.ActivityController;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.plugins.RxJavaPlugins;
@@ -69,14 +70,14 @@ public class MainActivityTest {
                 activity.findViewById(R.id.detailTextView).getVisibility());
 
         // by default, we don't know of any panels, so we don't expose
-        // solarUpdateFAB
+        // loadFAB
         assertEquals(View.INVISIBLE,
-                activity.findViewById(R.id.solarUpdateFAB).getVisibility());
+                activity.findViewById(R.id.loadFAB).getVisibility());
 
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.mainTextView).getVisibility());
         assertEquals(View.VISIBLE,
-                activity.findViewById(R.id.beaconScanFAB).getVisibility());
+                activity.findViewById(R.id.scanFAB).getVisibility());
 
         assertEquals(activity.getText(R.string.click_to_find_nearby_solar_panel),
                 ((TextView) activity.findViewById(R.id.mainTextView)).getText());
@@ -88,26 +89,26 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         // Because our scan response is delayed, we will be waiting for results...
-        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Observable.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1000, TimeUnit.MILLISECONDS));
+        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1000, TimeUnit.MILLISECONDS));
 
         // Creates, starts, resumes activity ...
         controller.setup();
 
-        activity.findViewById(R.id.beaconScanFAB).performClick();
+        activity.findViewById(R.id.scanFAB).performClick();
 
         // Because we've configured our scan response to be delayed above, we will be waiting for results...
 
         assertEquals(View.INVISIBLE,
                 activity.findViewById(R.id.detailTextView).getVisibility());
         assertEquals(View.INVISIBLE,
-                activity.findViewById(R.id.solarUpdateFAB).getVisibility());
+                activity.findViewById(R.id.loadFAB).getVisibility());
 
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.refreshProgressBar).getVisibility());
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.mainTextView).getVisibility());
         assertEquals(View.VISIBLE,
-                activity.findViewById(R.id.beaconScanFAB).getVisibility());
+                activity.findViewById(R.id.scanFAB).getVisibility());
 
         assertEquals(activity.getText(R.string.finding_nearby_solar_panel),
                 ((TextView) activity.findViewById(R.id.mainTextView)).getText());
@@ -124,12 +125,12 @@ public class MainActivityTest {
         RxJavaPlugins.setComputationSchedulerHandler(scheduler -> testScheduler);
         RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
 
-        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Observable.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1, TimeUnit.SECONDS));
+        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1, TimeUnit.SECONDS));
 
         // Creates, starts, resumes activity ...
         controller.setup();
 
-        activity.findViewById(R.id.beaconScanFAB).performClick();
+        activity.findViewById(R.id.scanFAB).performClick();
 
         // Because scan response is delayed above, we're in a 'finding' state for a bit ...
         assertEquals(activity.getText(R.string.finding_nearby_solar_panel),
@@ -148,9 +149,9 @@ public class MainActivityTest {
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.detailTextView).getVisibility());
         assertEquals(View.VISIBLE,
-                activity.findViewById(R.id.beaconScanFAB).getVisibility());
+                activity.findViewById(R.id.scanFAB).getVisibility());
         assertEquals(View.VISIBLE,
-                activity.findViewById(R.id.solarUpdateFAB).getVisibility());
+                activity.findViewById(R.id.loadFAB).getVisibility());
 
         assertEquals("solar panel (12345)",
                 ((TextView) activity.findViewById(R.id.detailTextView)).getText());
@@ -174,14 +175,14 @@ public class MainActivityTest {
                  ((TextView) activity.findViewById(R.id.mainTextView)).getText());
 
          // because we haven't advanced 'computational' scheduler, the above 'getSolarOutputInWatts()' will be pending
-         activity.findViewById(R.id.solarUpdateFAB).performClick();
+         activity.findViewById(R.id.loadFAB).performClick();
 
          assertEquals(View.VISIBLE,
                  activity.findViewById(R.id.refreshProgressBar).getVisibility());
          assertEquals(View.VISIBLE,
                  activity.findViewById(R.id.mainTextView).getVisibility());
          assertEquals(View.VISIBLE,
-                 activity.findViewById(R.id.beaconScanFAB).getVisibility());
+                 activity.findViewById(R.id.scanFAB).getVisibility());
 
          assertEquals("solar panel (54321)",
                  ((TextView) activity.findViewById(R.id.detailTextView)).getText());
@@ -202,7 +203,7 @@ public class MainActivityTest {
 
         // because we haven't delayed our output results above, they will return immediately, and
         // on main thread.
-        activity.findViewById(R.id.solarUpdateFAB).performClick();
+        activity.findViewById(R.id.loadFAB).performClick();
 
         assertEquals(View.INVISIBLE,
                 activity.findViewById(R.id.refreshProgressBar).getVisibility());
@@ -210,7 +211,7 @@ public class MainActivityTest {
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.mainTextView).getVisibility());
         assertEquals(View.VISIBLE,
-                activity.findViewById(R.id.beaconScanFAB).getVisibility());
+                activity.findViewById(R.id.scanFAB).getVisibility());
 
         assertEquals("solar panel (54321)",
                 ((TextView) activity.findViewById(R.id.detailTextView)).getText());
@@ -224,12 +225,12 @@ public class MainActivityTest {
         // and onResume() our activity.
 
         when(mockPanelScanProvider.scanForNearbyPanel())
-                .thenReturn(Observable.create(subscriber -> subscriber.onError(new TimeoutException())));
+                .thenReturn(Maybe.create(subscriber -> subscriber.onError(new TimeoutException())));
 
         // Creates, starts, resumes activity ...
         controller.setup();
 
-        activity.findViewById(R.id.beaconScanFAB).performClick();
+        activity.findViewById(R.id.scanFAB).performClick();
 
         assertEquals(activity.getText(R.string.error_please_try_again), ShadowToast.getTextOfLatestToast());
     }
@@ -246,7 +247,7 @@ public class MainActivityTest {
         // Creates, starts, resumes activity ...
         controller.setup();
 
-        activity.findViewById(R.id.solarUpdateFAB).performClick();
+        activity.findViewById(R.id.loadFAB).performClick();
 
         assertEquals(activity.getText(R.string.error_please_try_again), ShadowToast.getTextOfLatestToast());
     }
