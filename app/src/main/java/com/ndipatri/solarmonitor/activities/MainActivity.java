@@ -41,6 +41,7 @@ public class MainActivity extends BaseActivity {
     //region dependency injection
     @Inject
     SolarOutputProvider solarOutputProvider;
+
     @Inject
     PanelScanProvider panelScanProvider;
     //endregion
@@ -310,12 +311,24 @@ public class MainActivity extends BaseActivity {
             @Override
             public void onError(Throwable e) {
                 Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
+
+                if (getSolarCustomerId().isSet()) {
+                    userState = LOAD;
+                } else {
+                    userState = SCAN;
+                }
                 updateStatusViews();
             }
 
             @Override
             public void onComplete() {
-                disposable = null;
+                Toast.makeText(MainActivity.this, getString(R.string.no_nearby_panels_were_found), Toast.LENGTH_SHORT).show();
+
+                if (getSolarCustomerId().isSet()) {
+                    userState = LOAD;
+                } else {
+                    userState = SCAN;
+                }
                 updateStatusViews();
             }
         });
@@ -343,6 +356,7 @@ public class MainActivity extends BaseActivity {
                 public void onError(Throwable e) {
                     Toast.makeText(MainActivity.this, getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show();
 
+                    userState = LOAD;
                     updateStatusViews();
                 }
             });

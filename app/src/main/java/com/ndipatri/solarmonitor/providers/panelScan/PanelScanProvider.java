@@ -15,7 +15,6 @@ import com.google.common.primitives.Bytes;
 import com.ndipatri.iot.googleproximity.GoogleProximity;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
-import com.ndipatri.solarmonitor.utils.PanelScanner;
 
 import org.altbeacon.beacon.Beacon;
 import org.altbeacon.beacon.BeaconConsumer;
@@ -32,22 +31,22 @@ import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Completable;
 import io.reactivex.Maybe;
+import io.reactivex.MaybeObserver;
+import io.reactivex.MaybeSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.MaybeSubject;
 
 public class PanelScanProvider {
 
-    private static final String TAG = PanelScanner.class.getSimpleName();
+    private static final String TAG = PanelScanProvider.class.getSimpleName();
 
-    public static final int NEARBY_PANEL_SCAN_TIMEOUT_SECONDS = 30;
+    public static final int NEARBY_PANEL_SCAN_TIMEOUT_SECONDS = 10;
 
     protected BeaconManager beaconManager;
 
     protected Context context;
-
-    private final MaybeSubject<Beacon> scanForRegionSubject = MaybeSubject.create();
 
     private boolean isConnectedToBeaconService = false;
     private boolean isScanning = false;
@@ -69,30 +68,76 @@ public class PanelScanProvider {
         return idlingResource;
     }
 
+    // possible outcomes:
+    //
+    // 1. scan found no panel
+    // 2. scan found new panel
+    // 3. scan found configured panel
+    // 4. scan threw error
+    //
+    // This implementation is a bit complex.. I tried to use a simple Maybe.create() (instead of
+    // a Subject) with  multiple operators but I couldn't achieve the four possible outcomes above...
+    // should maybe try again sometime when i'm smarter...
+    private MaybeSubject<PanelInfo> scanForNearbyPanelSubject;
     public Maybe<PanelInfo> scanForNearbyPanel() {
+
+        scanForNearbyPanelSubject = MaybeSubject.create();
 
         // A beacon with this namespace is, by definition, a panel
         String beaconNamespaceId = context.getResources().getString(R.string.beaconNamespaceId);
 
-        return scanForNearbyBeacon(beaconNamespaceId)
+        scanForNearbyBeacon(beaconNamespaceId).subscribe(new MaybeObserver<Beacon>() {
+            @Override
+            public void onSubscribe(Disposable d) {}
 
-                .doOnError(new Consumer<Throwable>() {
+            @Override
+            public void onSuccess(Beacon beacon) {
+                Log.e(TAG, "Beacon found... trying to retrieve panel information...");
+
+                GoogleProximity.getInstance().retrieveAttachment(getAdvertiseId(beacon)).subscribe(new MaybeObserver<String[]>() {
                     @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Log.e(TAG, "Error scanning for beacons.", throwable);
+                    public void onSubscribe(Disposable d) {}
+
+                    @Override
+                    public void onSuccess(String[] attachment) {
+
+                        // scan found configured panel
+                        scanForNearbyPanelSubject.onSuccess(new PanelInfo(attachment));
                     }
-                })
 
-                // Any exception while searching for panel (e.g. timeout), we just complete and
-                // assume there's no nearby panel
-                .onErrorComplete()
+                    @Override
+                    public void onError(Throwable e) {
 
-                .flatMap(region -> GoogleProximity.getInstance().retrieveAttachment(getAdvertiseId(region)))
-                .flatMap(attachment -> Maybe.just(new PanelInfo(attachment)))
+                        // couldn't retrieve panel information..
+                        scanForNearbyPanelSubject.onError(e);
+                    }
 
-                // found a beacon, but couldn't find associated attachment
-                .defaultIfEmpty(new PanelInfo())
+                    @Override
+                    public void onComplete() {
 
+                        // scan found new panel
+                        scanForNearbyPanelSubject.onSuccess(new PanelInfo());
+                    }
+                });
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e(TAG, "Error scanning for beacons.", e);
+
+                scanForNearbyPanelSubject.onError(e);
+            }
+
+            @Override
+            public void onComplete() {
+                Log.e(TAG, "Couldn't find beacon.");
+
+                // scan found no panel
+                scanForNearbyPanelSubject.onComplete();
+            }
+        });
+
+        return scanForNearbyPanelSubject
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
@@ -103,12 +148,7 @@ public class PanelScanProvider {
 
         return scanForNearbyBeacon(beaconNamespaceId)
 
-                .doOnError(new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Log.e(TAG, "Error scanning for beacons.", throwable);
-                    }
-                })
+                .doOnError(throwable -> Log.e(TAG, "Error scanning for beacons.", throwable))
 
                 // Any exception while searching for panel (e.g. timeout), we just complete and
                 // assume there's no nearby panel
@@ -132,20 +172,25 @@ public class PanelScanProvider {
 
 
 
+
+
+
+
+
+
+
+
+
     //
     // NJD TODO - hopefully eveything below can be folded into GoogleProximity library!!!
     //
 
-    public boolean isBluetoothSupported() {
-        return BluetoothAdapter.getDefaultAdapter() != null;
-    }
 
-    public boolean isBluetoothEnabled() {
-        return isBluetoothSupported() && BluetoothAdapter.getDefaultAdapter().isEnabled();
-    }
-
+    private MaybeSubject<Beacon> scanForRegionSubject;
     public Maybe<Beacon> scanForNearbyBeacon(String beaconNamespaceId) {
         Log.d(TAG, "Starting AltBeacon discovery...");
+
+        scanForRegionSubject = MaybeSubject.create();
 
         if (!isScanning) {
 
@@ -165,7 +210,13 @@ public class PanelScanProvider {
         }
 
         return scanForRegionSubject
-            .timeout(NEARBY_PANEL_SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .timeout(NEARBY_PANEL_SCAN_TIMEOUT_SECONDS, TimeUnit.SECONDS, new MaybeSource<Beacon>() {
+                @Override
+                public void subscribe(MaybeObserver<? super Beacon> observer) {
+                    Log.d(TAG, "Timed out scaning for beacon.");
+                    observer.onComplete();
+                }
+            })
             .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 

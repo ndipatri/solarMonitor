@@ -28,9 +28,13 @@
             </intent-filter>
         </activity>
 
+        <!-- I shouldn't have to do this.. This Activity comes from google-proximity
+             library.. but for some reason, that Activity won't merge into the final
+             manifest so I include here as well -->
         <activity
             android:name="com.ndipatri.iot.googleproximity.activities.AuthenticationActivity"
-            android:label="Authentication Required"/>
+            android:label="Authentication Required"
+            android:screenOrientation="portrait" />
 
     </application>
 

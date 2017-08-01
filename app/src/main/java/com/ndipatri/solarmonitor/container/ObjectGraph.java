@@ -2,6 +2,7 @@ package com.ndipatri.solarmonitor.container;
 
 import android.content.Context;
 
+import com.ndipatri.solarmonitor.container.DaggerObjectGraph;
 import com.ndipatri.solarmonitor.activities.MainActivity;
 import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment;
 

@@ -16,7 +16,4 @@
     <string name="configuring_nearby_panel">Configuring nearby panel ...</string>
     <string name="failed_to_configure_panel">Failed to configure panel.</string>
     <string name="OK">OK</string>
-    <string name="bluetooth_disabled">Bluetooth Disabled</string>
-    <string name="user_permission_requested">User Permission Requested</string>
-    <string name="grant_fine_location_access">Grant Fine Location Access</string>
 </resources>
