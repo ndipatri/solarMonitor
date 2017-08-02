@@ -97,8 +97,6 @@ dependencies {
     compile 'com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1'
     compile 'com.cantrowitz:rxbroadcast:2.0.0'
 
-    compile 'org.altbeacon:android-beacon-library:2.9.2'
-
     compile "com.squareup.retrofit2:retrofit:2.2.0"
     compile "com.squareup.retrofit2:converter-gson:2.2.0"
     compile "com.squareup.retrofit2:adapter-rxjava2:2.2.0"
@@ -136,7 +134,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
-    compile ("com.ndipatri.iot:lib-google-proximity:1.5") {
+    compile ("com.ndipatri.iot:lib-google-proximity:1.7") {
         exclude module: 'mediarouter-v7'
     }
 }
