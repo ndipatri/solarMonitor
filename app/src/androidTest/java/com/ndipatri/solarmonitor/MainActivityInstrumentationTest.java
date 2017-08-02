@@ -13,10 +13,10 @@ import com.ndipatri.solarmonitor.mocks.MockSolarOutputServer;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.CurrentPower;
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.GetOverviewResponse;
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.LifeTimeData;
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.Overview;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPower;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview;
 
 import org.hamcrest.Matcher;
 import org.junit.Before;

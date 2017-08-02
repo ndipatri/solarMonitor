@@ -1,4 +1,4 @@
-package com.ndipatri.solarmonitor.dto;
+package com.ndipatri.solarmonitor.providers.solarUpdate.dto;
 
 
 public class PowerOutput {

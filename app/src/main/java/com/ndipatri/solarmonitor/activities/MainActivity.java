@@ -12,7 +12,7 @@ import android.widget.Toast;
 import com.f2prateek.rx.preferences2.Preference;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
-import com.ndipatri.solarmonitor.dto.PowerOutput;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;

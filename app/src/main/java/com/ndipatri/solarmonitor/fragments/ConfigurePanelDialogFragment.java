@@ -223,7 +223,7 @@ public class ConfigurePanelDialogFragment extends DialogFragment {
         userState = CONFIGURING_PANEL;
         updateStatusViews();
 
-        panelScanProvider.configureNearbyPanel(updatedPanelInfo).subscribe(new CompletableObserver() {
+        panelScanProvider.updateNearbyPanel(updatedPanelInfo).subscribe(new CompletableObserver() {
             @Override
             public void onSubscribe(Disposable d) {
                 ConfigurePanelDialogFragment.this.panelDisposable = panelDisposable;

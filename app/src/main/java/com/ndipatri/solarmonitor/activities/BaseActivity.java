@@ -5,7 +5,6 @@ import android.content.DialogInterface;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.ndipatri.iot.googleproximity.activities.AuthenticationActivity;
 import com.ndipatri.iot.googleproximity.activities.RequirementsActivity;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment;

@@ -3,8 +3,8 @@ package com.ndipatri.solarmonitor.providers.solarUpdate;
 
 import android.util.Log;
 
-import com.ndipatri.solarmonitor.dto.PowerOutput;
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.GetOverviewResponse;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse;
 
 import java.util.concurrent.TimeUnit;
 

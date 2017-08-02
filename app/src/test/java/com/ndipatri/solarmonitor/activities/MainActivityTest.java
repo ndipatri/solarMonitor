@@ -7,7 +7,7 @@ import android.widget.TextView;
 import com.ndipatri.solarmonitor.BuildConfig;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
-import com.ndipatri.solarmonitor.dto.PowerOutput;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;
@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import io.reactivex.Maybe;
-import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.TestScheduler;
