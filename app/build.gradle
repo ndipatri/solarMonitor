@@ -134,7 +134,7 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
-    compile ("com.ndipatri.iot:lib-google-proximity:1.7") {
+    compile ("com.ndipatri.iot:lib-google-proximity:1.14") {
         exclude module: 'mediarouter-v7'
     }
 }

@@ -21,6 +21,9 @@ public class PanelScanProvider {
 
     private static final String TAG = PanelScanProvider.class.getSimpleName();
 
+    // How long we wait to find a panel before declaring none present.
+    private static final int PANEL_SCAN_TIMEOUT_SECONDS = 10;
+
     protected Context context;
 
     public PanelScanProvider(Context context) {
@@ -48,7 +51,7 @@ public class PanelScanProvider {
         // A beacon with this namespace is, by definition, a panel
         String beaconNamespaceId = context.getResources().getString(R.string.beaconNamespaceId);
 
-        GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId)
+        GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
                 .firstElement() // once is good enough
                 .doFinally(() -> GoogleProximity.getInstance().stopBeaconScanning())
                 .subscribe(new MaybeObserver<Beacon>() {
@@ -98,7 +101,7 @@ public class PanelScanProvider {
 
                     @Override
                     public void onComplete() {
-                        Log.e(TAG, "Couldn't find beacon.");
+                        Log.d(TAG, "Couldn't find beacon.");
 
                         // scan found no panel
                         scanForNearbyPanelSubject.onComplete();
@@ -114,7 +117,7 @@ public class PanelScanProvider {
         // A beacon with this namespace is, by definition, a panel
         String beaconNamespaceId = context.getResources().getString(R.string.beaconNamespaceId);
 
-        return GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId)
+        return GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
                 .firstElement() // once is good enough
                 .doFinally(() -> GoogleProximity.getInstance().stopBeaconScanning())
                 .flatMapCompletable(beacon -> GoogleProximity.getInstance().updateBeacon(beacon, configPanelInfo.getAttachment()))
