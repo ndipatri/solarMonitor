@@ -113,6 +113,11 @@ public class MainActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
+        initialize();
+    }
+
+    private void initialize() {
+
         if (getSolarCustomerId().isSet()) {
             userState = LOAD;
         } else {
@@ -133,7 +138,7 @@ public class MainActivity extends BaseActivity {
 
     @Override
     protected void handleConfigureFragmentDismiss() {
-        onResume();
+        initialize();
     }
 
     //endregion

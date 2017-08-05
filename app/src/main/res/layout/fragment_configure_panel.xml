@@ -8,19 +8,33 @@
     tools:layout_editor_absoluteY="400dp"
     tools:layout_editor_absoluteX="0dp">
 
+    <Button
+        android:id="@+id/firstUserActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintHorizontal_bias="0.552"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        tools:layout_constraintBottom_creator="1"
+        tools:layout_constraintLeft_creator="1"
+        tools:layout_constraintRight_creator="1"
+        tools:text="Configure Panel"
+        android:layout_marginBottom="10dp"
+        app:layout_constraintBottom_toTopOf="@+id/secondUserActionButton" />
+
     <EditText
         android:id="@+id/panelDescriptionEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Enter Panel Description"
+        android:hint="Panel Description"
         android:inputType="textPersonName"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintHorizontal_bias="0.502"
         tools:layout_constraintTop_creator="1"
         tools:layout_constraintRight_creator="1"
-        android:layout_marginTop="55dp"
+        android:layout_marginTop="36dp"
         tools:layout_constraintLeft_creator="1"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -49,23 +63,23 @@
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintTop_creator="1"
         tools:layout_constraintRight_creator="1"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="21dp"
         app:layout_constraintTop_toBottomOf="@+id/progressTextView"
         tools:layout_constraintLeft_creator="1" />
 
     <Button
-        android:id="@+id/userActionButton"
+        android:id="@+id/secondUserActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Configure Panel"
+        tools:text="Erase Panel"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintHorizontal_bias="0.551"
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintBottom_creator="1"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:layout_constraintLeft_creator="1"
-        android:layout_marginBottom="99dp" />
+        android:layout_marginBottom="16dp" />
 
     <TextView
         android:id="@+id/progressTextView"
@@ -76,8 +90,9 @@
         app:layout_constraintRight_toRightOf="parent"
         tools:layout_constraintTop_creator="1"
         tools:layout_constraintRight_creator="1"
-        android:layout_marginTop="55dp"
+        android:layout_marginTop="66dp"
         app:layout_constraintTop_toBottomOf="@+id/customerIdEditText"
-        tools:layout_constraintLeft_creator="1" />
+        tools:layout_constraintLeft_creator="1"
+        app:layout_constraintHorizontal_bias="0.501" />
 
 </android.support.constraint.ConstraintLayout>

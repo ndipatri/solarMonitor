@@ -9,11 +9,14 @@
     <string name="error_please_try_again">Error. Please try again.</string>
     <string name="click_to_configure_nearby_panel">Click to configure nearby panel ...</string>
     <string name="configure_panel">Configure Panel</string>
-    <string name="enter_customer_id">Enter Customer Id</string>
+    <string name="enter_customer_id">Customer Id (6 digits)</string>
     <string name="search_for_nearby_panel">Searching for nearby panel ...</string>
     <string name="no_nearby_panels_were_found">No nearby panels were found.</string>
     <string name="search_again">Search Again</string>
     <string name="configuring_nearby_panel">Configuring nearby panel ...</string>
     <string name="failed_to_configure_panel">Failed to configure panel.</string>
     <string name="OK">OK</string>
+    <string name="erase_panel">Erase Panel</string>
+    <string name="description_requirements">Description must be between 3 and 20 characters.</string>
+    <string name="customer_id_requirements">CustomerId must be 6 digits.</string>
 </resources>

@@ -5,6 +5,8 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -13,12 +15,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ndipatri.iot.googleproximity.GoogleProximity;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
+
+import java.util.regex.Pattern;
 
 import javax.inject.Inject;
 
@@ -36,7 +41,10 @@ import static com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.U
 
 public class ConfigurePanelDialogFragment extends DialogFragment {
 
-    public static final String TAG = ConfigurePanelDialogFragment.class.getSimpleName();
+    private static final String TAG = ConfigurePanelDialogFragment.class.getSimpleName();
+
+    private static final Pattern PANEL_DESCRIPTION_PATTERN = Pattern.compile("[\\S ]{3,20}");
+    private static final Pattern CUSTOMER_ID_PATTERN = Pattern.compile("\\d{6}");
 
     enum USER_STATE {
         SEARCHING_FOR_PANEL,
@@ -54,8 +62,11 @@ public class ConfigurePanelDialogFragment extends DialogFragment {
     @BindView(R.id.customerIdEditText)
     EditText customerIdEditText;
 
-    @BindView(R.id.userActionButton)
-    Button userActionButton;
+    @BindView(R.id.firstUserActionButton)
+    Button firstUserActionButton;
+
+    @BindView(R.id.secondUserActionButton)
+    Button secondUserActionButton;
 
     @BindView(R.id.progressBar)
     View progressBar;
@@ -132,28 +143,30 @@ public class ConfigurePanelDialogFragment extends DialogFragment {
 
         switch (userState) {
             case SEARCHING_FOR_PANEL:
-                panelDescriptionEditText.setVisibility(View.INVISIBLE);
-                customerIdEditText.setVisibility(View.INVISIBLE);
+                panelDescriptionEditText.setVisibility(View.GONE);
+                customerIdEditText.setVisibility(View.GONE);
 
                 progressBar.setVisibility(View.VISIBLE);
                 progressTextView.setVisibility(View.VISIBLE);
                 progressTextView.setText(R.string.search_for_nearby_panel);
 
-                userActionButton.setVisibility(View.INVISIBLE);
+                firstUserActionButton.setVisibility(View.GONE);
+                secondUserActionButton.setVisibility(View.GONE);
 
                 break;
 
             case NO_PANEL_FOUND:
-                panelDescriptionEditText.setVisibility(View.INVISIBLE);
-                customerIdEditText.setVisibility(View.INVISIBLE);
+                panelDescriptionEditText.setVisibility(View.GONE);
+                customerIdEditText.setVisibility(View.GONE);
 
                 progressTextView.setVisibility(View.VISIBLE);
                 progressTextView.setText(R.string.no_nearby_panels_were_found);
                 progressBar.setVisibility(View.INVISIBLE);
 
-                userActionButton.setText(R.string.search_again);
-                userActionButton.setVisibility(View.VISIBLE);
-                userActionButton.setOnClickListener(v -> searchForPanel());
+                firstUserActionButton.setText(R.string.search_again);
+                firstUserActionButton.setVisibility(View.VISIBLE);
+                firstUserActionButton.setOnClickListener(v -> searchForPanel());
+                secondUserActionButton.setVisibility(View.GONE);
 
                 break;
 
@@ -161,33 +174,77 @@ public class ConfigurePanelDialogFragment extends DialogFragment {
             case PANEL_FOUND:
                 panelDescriptionEditText.setVisibility(View.VISIBLE);
                 panelDescriptionEditText.setText(foundPanelInfo.getDescription());
+                panelDescriptionEditText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                    @Override
+                    public void afterTextChanged(Editable newPanelDescription) {
+                        if (!isEnteredPanelDescriptionValid()) {
+                            Toast.makeText(getActivity(), getString(R.string.description_requirements), Toast.LENGTH_SHORT).show();
+                        }
+
+                        firstUserActionButton.setEnabled(isEnteredCustomerIdValid() && isEnteredPanelDescriptionValid());
+                    }
+                });
 
                 customerIdEditText.setVisibility(View.VISIBLE);
                 if (foundPanelInfo.getCustomerId().isPresent()) {
-                    customerIdEditText.setHint(foundPanelInfo.getCustomerId().get());
+                    customerIdEditText.setText(foundPanelInfo.getCustomerId().get());
                 } else {
                     customerIdEditText.setHint(getActivity().getString(R.string.enter_customer_id));
                 }
+                customerIdEditText.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+                    @Override
+                    public void afterTextChanged(Editable newCustomerId) {
+                        if (!isEnteredCustomerIdValid()) {
+                            Toast.makeText(getActivity(), getString(R.string.customer_id_requirements), Toast.LENGTH_SHORT).show();
+                        }
+
+                        firstUserActionButton.setEnabled(isEnteredCustomerIdValid() && isEnteredPanelDescriptionValid());
+                    }
+                });
 
                 progressTextView.setVisibility(View.INVISIBLE);
                 progressBar.setVisibility(View.INVISIBLE);
 
-                userActionButton.setText(getActivity().getString(R.string.configure_panel));
-                userActionButton.setVisibility(View.VISIBLE);
-                userActionButton.setOnClickListener(v -> configurePanel(panelDescriptionEditText.getText().toString(),
-                                                                        customerIdEditText.getText().toString()));
+                firstUserActionButton.setText(getActivity().getString(R.string.configure_panel));
+                firstUserActionButton.setVisibility(View.VISIBLE);
+                firstUserActionButton.setEnabled(isEnteredCustomerIdValid() && isEnteredPanelDescriptionValid());
+                firstUserActionButton.setOnClickListener(v -> {
+                    PanelInfo updatedPanelInfo = new PanelInfo(panelDescriptionEditText.getText().toString(),
+                                                               customerIdEditText.getText().toString());
+                    configurePanel(updatedPanelInfo);
+                });
+
+                secondUserActionButton.setText(getActivity().getString(R.string.erase_panel));
+                secondUserActionButton.setVisibility(View.VISIBLE);
+                secondUserActionButton.setOnClickListener(v -> {
+                    PanelInfo newPanelInfo = new PanelInfo(); // default settings
+                    configurePanel(newPanelInfo);
+                });
 
                 break;
 
             case CONFIGURING_PANEL:
-                panelDescriptionEditText.setVisibility(View.INVISIBLE);
-                customerIdEditText.setVisibility(View.INVISIBLE);
+                panelDescriptionEditText.setVisibility(View.GONE);
+                customerIdEditText.setVisibility(View.GONE);
 
                 progressBar.setVisibility(View.VISIBLE);
                 progressTextView.setVisibility(View.VISIBLE);
                 progressTextView.setText(R.string.configuring_nearby_panel);
 
-                userActionButton.setVisibility(View.INVISIBLE);
+                firstUserActionButton.setVisibility(View.GONE);
+                secondUserActionButton.setVisibility(View.GONE);
 
                 break;
 
@@ -199,26 +256,28 @@ public class ConfigurePanelDialogFragment extends DialogFragment {
                 progressTextView.setText(R.string.failed_to_configure_panel);
                 progressBar.setVisibility(View.INVISIBLE);
 
-                userActionButton.setText(R.string.OK);
-                userActionButton.setVisibility(View.VISIBLE);
-                userActionButton.setOnClickListener(v -> {
+                firstUserActionButton.setText(R.string.OK);
+                firstUserActionButton.setVisibility(View.VISIBLE);
+                firstUserActionButton.setOnClickListener(v -> {
                     userState = PANEL_FOUND;
                     updateStatusViews();
 
                 });
+                secondUserActionButton.setVisibility(View.INVISIBLE);
 
                 break;
         }
     }
 
-    private void configurePanel(final String panelDescription, final String _customerId) {
+    private boolean isEnteredPanelDescriptionValid() {
+        return PANEL_DESCRIPTION_PATTERN.matcher(panelDescriptionEditText.getText()).matches();
+    }
 
-        String customerId = null;
-        if (_customerId.length() == 6) {
-            customerId = _customerId;
-        }
+    private boolean isEnteredCustomerIdValid() {
+        return CUSTOMER_ID_PATTERN.matcher(customerIdEditText.getText()).matches();
+    }
 
-        PanelInfo updatedPanelInfo = new PanelInfo(panelDescription, customerId);
+    private void configurePanel(final PanelInfo updatedPanelInfo) {
 
         userState = CONFIGURING_PANEL;
         updateStatusViews();
