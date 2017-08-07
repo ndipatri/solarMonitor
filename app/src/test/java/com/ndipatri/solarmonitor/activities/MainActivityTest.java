@@ -106,7 +106,7 @@ public class MainActivityTest {
                 activity.findViewById(R.id.refreshProgressBar).getVisibility());
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.mainTextView).getVisibility());
-        assertEquals(View.VISIBLE,
+        assertEquals(View.INVISIBLE,
                 activity.findViewById(R.id.scanFAB).getVisibility());
 
         assertEquals(activity.getText(R.string.finding_nearby_solar_panel),
@@ -124,7 +124,7 @@ public class MainActivityTest {
         RxJavaPlugins.setComputationSchedulerHandler(scheduler -> testScheduler);
         RxJavaPlugins.setIoSchedulerHandler(scheduler -> testScheduler);
 
-        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.just(new PanelInfo("Nicks Solar Panels", "12345")).delay(1, TimeUnit.SECONDS));
+        when(mockPanelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.just(new PanelInfo("Nicks Solar Panels", "123456")).delay(1, TimeUnit.SECONDS));
 
         // Creates, starts, resumes activity ...
         controller.setup();
@@ -152,7 +152,7 @@ public class MainActivityTest {
         assertEquals(View.VISIBLE,
                 activity.findViewById(R.id.loadFAB).getVisibility());
 
-        assertEquals("solar panel (12345)",
+        assertEquals("solar panel (123456)",
                 ((TextView) activity.findViewById(R.id.detailTextView)).getText());
         assertEquals(activity.getText(R.string.click_to_load_solar_output),
                 ((TextView) activity.findViewById(R.id.mainTextView)).getText());
@@ -180,7 +180,7 @@ public class MainActivityTest {
                  activity.findViewById(R.id.refreshProgressBar).getVisibility());
          assertEquals(View.VISIBLE,
                  activity.findViewById(R.id.mainTextView).getVisibility());
-         assertEquals(View.VISIBLE,
+         assertEquals(View.INVISIBLE,
                  activity.findViewById(R.id.scanFAB).getVisibility());
 
          assertEquals("solar panel (54321)",

@@ -3,6 +3,7 @@ package com.ndipatri.solarmonitor;
 
 import android.app.Application;
 import android.preference.PreferenceManager;
+import android.support.test.espresso.IdlingResource;
 
 import com.f2prateek.rx.preferences2.Preference;
 import com.f2prateek.rx.preferences2.RxSharedPreferences;

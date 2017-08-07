@@ -28,8 +28,7 @@ import java.net.MalformedURLException;
 
 import javax.inject.Inject;
 
-import io.reactivex.Observable;
-import io.reactivex.Observer;
+import io.reactivex.Maybe;
 
 import static android.support.test.InstrumentationRegistry.getInstrumentation;
 import static android.support.test.espresso.Espresso.onView;
@@ -51,7 +50,8 @@ public class MainActivityInstrumentationTest {
     public ActivityTestRule<MainActivity> activityRule = new ActivityTestRule<>(MainActivity.class, true, false);
 
     // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
-    // while the background thread is running in our target application.
+    // while the background thread is running in our target application. (only those background
+    // operations that are using RxJava's IO and Computation schedulers, that is)
     @Rule
     public final AsyncTaskSchedulerRule asyncTaskSchedulerRule = new AsyncTaskSchedulerRule();
 
@@ -91,7 +91,7 @@ public class MainActivityInstrumentationTest {
         testObjectGraph.inject(this);
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        IdlingResource idlingResource = this.panelScanProvider.getIdlingResource();
+        IdlingResource idlingResource = panelScanProvider.getIdlingResource();
         Espresso.registerIdlingResources(idlingResource);
 
         activityRule.launchActivity(new Intent());
@@ -186,26 +186,22 @@ public class MainActivityInstrumentationTest {
     }
 
     private void configureMockHardware(String desiredPanelDesc, String desiredPanelId) {
-        when(panelScanProvider.scanForNearbyPanel()).thenReturn(new Observable<PanelInfo>() {
-            @Override
-            protected void subscribeActual(Observer<? super PanelInfo> observer) {
-                PanelInfo panelInfo = new PanelInfo(desiredPanelDesc, desiredPanelId);
+        when(panelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.create(subscriber -> {
+            PanelInfo panelInfo = new PanelInfo(desiredPanelDesc, desiredPanelId);
 
-                observer.onNext(panelInfo);
-                observer.onComplete();
-            }
-        });
+            subscriber.onSuccess(panelInfo);
+        }));
     }
 
     private void assertFindingPanelViews(String expectedPanelId) {
-        onView(withText("Click to find nearby Solar panel.")).check(matches(isCompletelyDisplayed()));
+        onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()));
 
         onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click());
 
         // No need to wait for real hardware to scan for panel.. because our test thread is
         // blocked on app's background thread
 
-        onView(withText("Click to load Solar Output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (" + expectedPanelId + ")")));
+        onView(withText("Click to load solar output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel (" + expectedPanelId + ")")));
     }
 
     private void assertLoadingSolarOutputViews(Double expectedSolarOutput, Double expectedLifetimeOutput, String expectedPanelId) {

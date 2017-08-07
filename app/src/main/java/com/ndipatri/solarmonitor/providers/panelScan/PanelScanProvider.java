@@ -2,6 +2,8 @@ package com.ndipatri.solarmonitor.providers.panelScan;
 
 
 import android.content.Context;
+import android.support.annotation.Nullable;
+import android.support.test.espresso.IdlingResource;
 import android.util.Log;
 
 import com.ndipatri.iot.googleproximity.GoogleProximity;
@@ -26,6 +28,8 @@ public class PanelScanProvider {
 
     protected Context context;
 
+    private PanelScanProviderIdlingResource idlingResource = new PanelScanProviderIdlingResource();
+
     public PanelScanProvider(Context context) {
         this.context = context;
     }
@@ -45,6 +49,8 @@ public class PanelScanProvider {
     private MaybeSubject<PanelInfo> scanForNearbyPanelSubject;
 
     public Maybe<PanelInfo> scanForNearbyPanel() {
+
+        idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_NOT_IDLE);
 
         scanForNearbyPanelSubject = MaybeSubject.create();
 
@@ -109,10 +115,13 @@ public class PanelScanProvider {
                 });
 
         return scanForNearbyPanelSubject
+                .doFinally(() -> idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_IDLE))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     public Completable updateNearbyPanel(PanelInfo configPanelInfo) {
+
+        idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_NOT_IDLE);
 
         // A beacon with this namespace is, by definition, a panel
         String beaconNamespaceId = context.getResources().getString(R.string.beaconNamespaceId);
@@ -121,6 +130,47 @@ public class PanelScanProvider {
                 .firstElement() // once is good enough
                 .doFinally(() -> GoogleProximity.getInstance().stopBeaconScanning())
                 .flatMapCompletable(beacon -> GoogleProximity.getInstance().updateBeacon(beacon, configPanelInfo.getAttachment()))
+                .doFinally(() -> idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_IDLE))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    public IdlingResource getIdlingResource() {
+        return idlingResource;
+    }
+
+    public static class PanelScanProviderIdlingResource implements IdlingResource {
+
+        public static final boolean IS_IDLE = true;
+        public static final boolean IS_NOT_IDLE = false;
+
+        @Nullable
+        private volatile ResourceCallback resourceCallback;
+
+        private boolean isIdle = IS_IDLE;
+
+        @Override
+        public String getName() {
+            return this.getClass().getName();
+        }
+
+        @Override
+        public boolean isIdleNow() {
+            return isIdle;
+        }
+
+        @Override
+        public void registerIdleTransitionCallback(ResourceCallback resourceCallback) {
+            this.resourceCallback = resourceCallback;
+        }
+
+        public synchronized void updateIdleState(boolean isIdle) {
+            this.isIdle = isIdle;
+
+            Log.d(TAG, "PanelScanProviderIdlingResource: Update IdleState(" + isIdle + ")");
+
+            if (isIdle && null != resourceCallback) {
+                resourceCallback.onTransitionToIdle();
+            }
+        }
     }
 }
