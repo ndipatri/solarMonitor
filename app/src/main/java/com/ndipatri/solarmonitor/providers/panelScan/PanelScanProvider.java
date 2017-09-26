@@ -7,6 +7,7 @@ import android.support.test.espresso.IdlingResource;
 import android.util.Log;
 
 import com.ndipatri.iot.googleproximity.GoogleProximity;
+import com.ndipatri.iot.googleproximity.utils.BeaconScanHelper;
 import com.ndipatri.solarmonitor.R;
 
 import org.altbeacon.beacon.Beacon;
@@ -60,47 +61,54 @@ public class PanelScanProvider {
         GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
                 .firstElement() // once is good enough
                 .doFinally(() -> GoogleProximity.getInstance().stopBeaconScanning())
-                .subscribe(new MaybeObserver<Beacon>() {
+                .subscribe(new MaybeObserver<BeaconScanHelper.BeaconUpdate>() {
 
                     @Override
                     public void onSubscribe(Disposable d) {
                     }
 
                     @Override
-                    public void onSuccess(Beacon beacon) {
-                        Log.d(TAG, "Beacon found.. " + beacon + "'. Retrieving panel info ...");
+                    public void onSuccess(BeaconScanHelper.BeaconUpdate beaconUpdate) {
+                        if (beaconUpdate.getBeacon().isPresent()) {
+                            Beacon beacon = beaconUpdate.getBeacon().get();
 
-                        GoogleProximity.getInstance().retrieveAttachment(beacon).subscribe(new MaybeObserver<String[]>() {
-                            @Override
-                            public void onSubscribe(Disposable d) {
-                            }
+                            Log.d(TAG, "Beacon found.. " + beacon + "'. Retrieving panel info ...");
 
-                            @Override
-                            public void onSuccess(String[] attachment) {
+                            GoogleProximity.getInstance().retrieveAttachment(beacon).subscribe(new MaybeObserver<String[]>() {
+                                @Override
+                                public void onSubscribe(Disposable d) {
+                                }
 
-                                // scan found configured panel
-                                scanForNearbyPanelSubject.onSuccess(new PanelInfo(attachment));
-                            }
+                                @Override
+                                public void onSuccess(String[] attachment) {
 
-                            @Override
-                            public void onError(Throwable e) {
+                                    // scan found configured panel
+                                    scanForNearbyPanelSubject.onSuccess(new PanelInfo(attachment));
+                                }
 
-                                // couldn't retrieve panel information..
-                                scanForNearbyPanelSubject.onError(e);
-                            }
+                                @Override
+                                public void onError(Throwable e) {
 
-                            @Override
-                            public void onComplete() {
+                                    // couldn't retrieve panel information..
+                                    scanForNearbyPanelSubject.onError(e);
+                                }
 
-                                // scan found new panel
-                                scanForNearbyPanelSubject.onSuccess(new PanelInfo());
-                            }
-                        });
+                                @Override
+                                public void onComplete() {
+
+                                    // scan found new panel
+                                    scanForNearbyPanelSubject.onSuccess(new PanelInfo());
+                                }
+                            });
+                        } else {
+                            Log.e(TAG, "Couldn't find beacon.");
+                            scanForNearbyPanelSubject.onError(new Exception("Region left."));
+                        }
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.e(TAG, "Error scanning for beacons.", e);
+                        Log.e(TAG, "No beacon found.", e);
 
                         scanForNearbyPanelSubject.onError(e);
                     }
@@ -129,7 +137,10 @@ public class PanelScanProvider {
         return GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
                 .firstElement() // once is good enough
                 .doFinally(() -> GoogleProximity.getInstance().stopBeaconScanning())
-                .flatMapCompletable(beacon -> GoogleProximity.getInstance().updateBeacon(beacon, configPanelInfo.getAttachment()))
+
+                // We're getting the first 'beaconUpdate' element emitted,
+                // which would include a beacon.
+                .flatMapCompletable(beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.getBeacon().get(), configPanelInfo.getAttachment()))
                 .doFinally(() -> idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_IDLE))
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
