@@ -4,22 +4,20 @@ package com.ndipatri.solarmonitor.activities;
 import android.view.View;
 import android.widget.TextView;
 
-import com.ndipatri.solarmonitor.BuildConfig;
 import com.ndipatri.solarmonitor.R;
 import com.ndipatri.solarmonitor.SolarMonitorApp;
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo;
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider;
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider;
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.shadows.ShadowToast;
-import org.robolectric.util.ActivityController;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -34,7 +32,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class)
 public class MainActivityTest {
 
     private ActivityController<MainActivity> controller;

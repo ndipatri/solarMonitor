@@ -9,9 +9,9 @@ allprojects {
     }
 
     ext {
-        currentGradleVersion = "2.14.1"
-        currentBuildToolsVersion = "25.0.2"
-        currentSupportLibVersion = "25.1.0"
+        currentGradleVersion = "4.3"
+        currentBuildToolsVersion = "26.0.2"
+        currentSupportLibVersion = "26.0.2"
         currentCompileSdkVersion = 25
         currentMinSdkVersion = 24
         currentTargetSdkVersion = 25
@@ -27,6 +27,10 @@ subprojects {
                 url 'https://oss.sonatype.org/content/repositories/snapshots/'
             }
             maven { url "https://jitpack.io" }
+            maven {
+                url 'https://maven.google.com/'
+                name 'Google'
+            }
             flatDir {
                 dirs 'libs'
                 dirs 'aars'
@@ -35,13 +39,12 @@ subprojects {
         }
 
         dependencies {
-            classpath 'com.android.tools.build:gradle:2.3.2'
-            classpath 'me.tatarka:gradle-retrolambda:3.4.0'
-            classpath "io.realm:realm-gradle-plugin:3.0.0"
+            classpath 'com.android.tools.build:gradle:3.0.1'
+            classpath "io.realm:realm-gradle-plugin:3.5.0"
         }
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+task wrapper(type: Wrapper) {
+    gradleVersion = project.ext.get("currentGradleVersion")
 }

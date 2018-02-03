@@ -1,7 +1,5 @@
 apply plugin: 'com.android.application'
 
-apply plugin: 'me.tatarka.retrolambda'
-
 android {
 
     compileOptions {
@@ -21,6 +19,13 @@ android {
             keyPassword 'android'
             storeFile file(System.properties['user.home'] + '/.android/debug.keystore')
             storePassword 'android'
+        }
+    }
+
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+            unitTests.returnDefaultValues = true
         }
     }
 
@@ -66,9 +71,7 @@ android {
 final ESPRESSO_VERSION = '2.2.2';
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-
-    androidTestCompile("com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}") {
+    androidTestImplementation("com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}") {
         exclude module: 'support-annotations'
         exclude group: 'com.android.support', module: 'appcompat'
         exclude group: 'com.android.support', module: 'support-v4'
@@ -76,14 +79,14 @@ dependencies {
         exclude module: 'design'
     }
 
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    implementation 'com.android.support:appcompat-v7:25.3.1'
 
-    compile "com.android.support.test.espresso:espresso-idling-resource:${ESPRESSO_VERSION}"
+    implementation "com.android.support.test.espresso:espresso-idling-resource:${ESPRESSO_VERSION}"
 
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    compile 'com.android.support:design:25.3.1'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    implementation 'com.android.support:design:25.3.1'
 
-    androidTestCompile("com.android.support.test.espresso:espresso-contrib:${ESPRESSO_VERSION}") {
+    androidTestImplementation("com.android.support.test.espresso:espresso-contrib:${ESPRESSO_VERSION}") {
         exclude module: 'support-annotations'
         exclude group: 'com.android.support', module: 'appcompat'
         exclude group: 'com.android.support', module: 'support-v4'
@@ -91,50 +94,50 @@ dependencies {
         exclude module: 'design'
     }
 
-    compile 'com.google.code.gson:gson:2.4'
-    compile 'io.reactivex.rxjava2:rxjava:2.0.5'
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1'
-    compile 'com.cantrowitz:rxbroadcast:2.0.0'
+    implementation 'com.google.code.gson:gson:2.4'
+    implementation 'io.reactivex.rxjava2:rxjava:2.0.5'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1'
+    implementation 'com.cantrowitz:rxbroadcast:2.0.0'
 
-    compile "com.squareup.retrofit2:retrofit:2.2.0"
-    compile "com.squareup.retrofit2:converter-gson:2.2.0"
-    compile "com.squareup.retrofit2:adapter-rxjava2:2.2.0"
+    implementation "com.squareup.retrofit2:retrofit:2.2.0"
+    implementation "com.squareup.retrofit2:converter-gson:2.2.0"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:2.2.0"
 
     // apt command comes from the android-apt plugin
-    compile "com.google.dagger:dagger:2.7"
+    implementation "com.google.dagger:dagger:2.7"
     annotationProcessor "com.google.dagger:dagger-compiler:2.7"
-    provided 'javax.annotation:jsr250-api:1.0'
+    compileOnly 'javax.annotation:jsr250-api:1.0'
 
-    compile 'com.jakewharton:butterknife:8.7.0'
+    implementation 'com.jakewharton:butterknife:8.7.0'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.7.0'
 
-    compile 'commons-codec:commons-codec:1.10'
+    implementation 'commons-codec:commons-codec:1.10'
 
-    compile group: 'com.google.guava', name: 'guava', version: '20.0'
+    implementation group: 'com.google.guava', name: 'guava', version: '20.0'
 
     androidTestAnnotationProcessor 'com.google.dagger:dagger-compiler:2.9'
 
-    testCompile 'org.robolectric:robolectric:3.3'
-    testCompile 'org.robolectric:robolectric-resources:3.3'
-    testCompile 'org.robolectric:robolectric-annotations:3.3'
-    testCompile 'org.robolectric:shadows-support-v4:3.3'
+    testImplementation 'org.robolectric:robolectric:3.3.2'
+    testImplementation 'org.robolectric:robolectric-resources:3.3.2'
+    testImplementation 'org.robolectric:robolectric-annotations:3.3.2'
+    testImplementation 'org.robolectric:shadows-support-v4:3.3.2'
 
     // dexmaker libraries are required to create Dalvik VM compatible mocks for Espresso.
-    androidTestCompile 'com.google.dexmaker:dexmaker:1.2'
-    androidTestCompile 'com.google.dexmaker:dexmaker-mockito:1.2';
+    androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
+    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2';
     // Notice dexmaker has a requirement on mockito.. it can only deal with an earlier version.
-    androidTestCompile 'org.mockito:mockito-core:1.10.19'
+    androidTestImplementation 'org.mockito:mockito-core:1.10.19'
 
     // However, for unit tests... we can use the latest.
-    testCompile 'org.mockito:mockito-core:2.3.11'
+    testImplementation 'org.mockito:mockito-core:2.3.11'
 
-    androidTestCompile 'com.squareup.okhttp3:mockwebserver:3.6.0'
+    androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
-    testCompile 'junit:junit:4.12'
-    compile 'com.squareup.okhttp3:mockwebserver:3.6.0'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
-    compile ("com.ndipatri.iot:lib-google-proximity:1.25") {
+    implementation ("com.ndipatri.iot:lib-google-proximity:1.25") {
         exclude module: 'mediarouter-v7'
     }
 }
