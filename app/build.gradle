@@ -25,7 +25,7 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
-            unitTests.returnDefaultValues = true
+            returnDefaultValues = true
         }
     }
 
@@ -118,10 +118,7 @@ dependencies {
 
     androidTestAnnotationProcessor 'com.google.dagger:dagger-compiler:2.9'
 
-    testImplementation 'org.robolectric:robolectric:3.3.2'
-    testImplementation 'org.robolectric:robolectric-resources:3.3.2'
-    testImplementation 'org.robolectric:robolectric-annotations:3.3.2'
-    testImplementation 'org.robolectric:shadows-support-v4:3.3.2'
+    testImplementation 'org.robolectric:robolectric:3.6.1'
 
     // dexmaker libraries are required to create Dalvik VM compatible mocks for Espresso.
     androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
