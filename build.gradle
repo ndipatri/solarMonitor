@@ -20,6 +20,8 @@ allprojects {
 
 subprojects {
     buildscript {
+        ext.KOTLIN_VERSION = '1.2.21'
+
         repositories {
             mavenCentral()
             mavenLocal()
@@ -41,6 +43,7 @@ subprojects {
         dependencies {
             classpath 'com.android.tools.build:gradle:3.0.1'
             classpath "io.realm:realm-gradle-plugin:3.5.0"
+            classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
         }
     }
 }

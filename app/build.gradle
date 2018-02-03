@@ -1,5 +1,9 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
 android {
 
     compileOptions {
@@ -137,4 +141,6 @@ dependencies {
     implementation ("com.ndipatri.iot:lib-google-proximity:1.25") {
         exclude module: 'mediarouter-v7'
     }
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$KOTLIN_VERSION"
 }
