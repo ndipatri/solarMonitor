@@ -1,21 +1,13 @@
 package com.ndipatri.solarmonitor.activities
 
 
-import android.content.DialogInterface
 import android.view.Menu
 import android.view.MenuItem
-
 import com.ndipatri.iot.googleproximity.activities.RequirementsActivity
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment
-import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider
-
-import javax.inject.Inject
 
 open class BaseActivity : RequirementsActivity() {
-
-    @Inject
-    var panelScanProvider: PanelScanProvider? = null
 
     //region menuSetup
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -51,9 +43,4 @@ open class BaseActivity : RequirementsActivity() {
     }
 
     protected open fun handleConfigureFragmentDismiss() {}
-
-    companion object {
-
-        private val TAG = BaseActivity::class.java!!.getSimpleName()
-    }
 }

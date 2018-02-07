@@ -2,12 +2,8 @@ package com.ndipatri.solarmonitor.providers.solarUpdate
 
 
 import android.util.Log
-
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
-
-import java.util.concurrent.TimeUnit
-
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.SingleOnSubscribe
@@ -19,6 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.util.concurrent.TimeUnit
 
 class SolarOutputProvider(val apiKey: String) {
 
@@ -44,13 +41,13 @@ class SolarOutputProvider(val apiKey: String) {
         return solarOutputRESTEndpoint
                 .flatMap { endpoint -> endpoint.getOverview(customerId, apiKey) }
                 .flatMap { getOverviewResponse ->
-                    Single.create({ subscriber ->
+                    Single.create(SingleOnSubscribe<PowerOutput> { subscriber ->
 
                         val currentPower = getOverviewResponse.overview!!.currentPower!!.power
                         val lifeTimeEnergy = getOverviewResponse.overview!!.lifeTimeData!!.energy
 
                         subscriber.onSuccess(PowerOutput(currentPower, lifeTimeEnergy))
-                    } as SingleOnSubscribe<PowerOutput>)
+                    })
                 }
 
                 .timeout(SOLAR_OUTPUT_TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)

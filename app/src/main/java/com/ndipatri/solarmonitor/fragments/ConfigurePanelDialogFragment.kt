@@ -12,67 +12,41 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-
 import com.ndipatri.iot.googleproximity.GoogleProximity
-import com.ndipatri.solarmonitor.R
-import com.ndipatri.solarmonitor.SolarMonitorApp
+import com.ndipatri.solarmonitor.*
+import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.USER_STATE.*
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider
-
-import java.util.regex.Pattern
-
-import javax.inject.Inject
-
-import butterknife.BindView
-import butterknife.ButterKnife
 import io.reactivex.CompletableObserver
 import io.reactivex.MaybeObserver
 import io.reactivex.disposables.Disposable
-
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.USER_STATE.CONFIGURATION_ERROR
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.USER_STATE.CONFIGURING_PANEL
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.USER_STATE.NO_PANEL_FOUND
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.USER_STATE.PANEL_FOUND
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment.USER_STATE.SEARCHING_FOR_PANEL
+import kotlinx.android.synthetic.main.fragment_configure_panel.*
+import kotlinx.android.synthetic.main.fragment_configure_panel.view.*
+import java.util.regex.Pattern
+import javax.inject.Inject
 
 class ConfigurePanelDialogFragment : DialogFragment() {
-    private var userState: USER_STATE? = null
 
-    @BindView(R.id.panelDescriptionEditText)
-    internal var panelDescriptionEditText: EditText? = null
-
-    @BindView(R.id.customerIdEditText)
-    internal var customerIdEditText: EditText? = null
-
-    @BindView(R.id.firstUserActionButton)
-    internal var firstUserActionButton: Button? = null
-
-    @BindView(R.id.secondUserActionButton)
-    internal var secondUserActionButton: Button? = null
-
-    @BindView(R.id.progressBar)
-    internal var progressBar: View? = null
-
-    @BindView(R.id.progressTextView)
-    internal var progressTextView: TextView? = null
+    init {
+        SolarMonitorApp.instance.objectGraph.inject(this)
+    }
 
     @Inject
-    internal var panelScanProvider: PanelScanProvider? = null
+    lateinit var panelScanProvider: PanelScanProvider
 
     private var panelDisposable: Disposable? = null
 
-    private var foundPanelInfo: PanelInfo? = null
+    private lateinit var foundPanelInfo: PanelInfo
 
     private val isEnteredPanelDescriptionValid: Boolean
-        get() = PANEL_DESCRIPTION_PATTERN.matcher(panelDescriptionEditText!!.text).matches()
+        get() = PANEL_DESCRIPTION_PATTERN.matcher(panelDescriptionEditText.text).matches()
 
     private val isEnteredCustomerIdValid: Boolean
-        get() = CUSTOMER_ID_PATTERN.matcher(customerIdEditText!!.text).matches()
+        get() = CUSTOMER_ID_PATTERN.matcher(customerIdEditText.text).matches()
 
+    private var userState: USER_STATE? = null
     internal enum class USER_STATE {
         SEARCHING_FOR_PANEL,
         NO_PANEL_FOUND,
@@ -81,9 +55,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
         CONFIGURATION_ERROR
     }
 
-    init {
-        SolarMonitorApp.instance!!.objectGraph.inject(this)
-    }
+    private lateinit var dialogView: View
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
@@ -95,19 +67,16 @@ class ConfigurePanelDialogFragment : DialogFragment() {
         titleView.text = dialogTitle
         titleView.gravity = Gravity.CENTER
 
-        val dialogView = LayoutInflater.from(activity).inflate(R.layout.fragment_configure_panel, null)
-
-        // Use ButterKnife for view injection (http://jakewharton.github.io/butterknife/)
-        ButterKnife.bind(this, dialogView)
+        dialogView = LayoutInflater.from(activity).inflate(R.layout.fragment_configure_panel, null)
 
         builder.setTitle(dialogTitle)
                 //.setCustomTitle(titleView)
                 .setView(dialogView)
-                .setNeutralButton("Done") { dialog, which -> dismiss() }
+                .setNeutralButton("Done") { _, _ -> dismiss() }
 
         val dialog = builder.create()
 
-        dialog.window!!.attributes.windowAnimations = R.style.slideup_dialog_animation
+        dialog.window.attributes.windowAnimations = R.style.slideup_dialog_animation
         dialog.setCanceledOnTouchOutside(false)
 
         return dialog
@@ -131,65 +100,62 @@ class ConfigurePanelDialogFragment : DialogFragment() {
     override fun onDetach() {
         super.onDetach()
 
-        if (null != panelDisposable) {
-            panelDisposable!!.dispose()
-        }
+        panelDisposable?.dispose()
     }
 
     private fun updateStatusViews() {
 
         when (userState) {
             SEARCHING_FOR_PANEL -> {
-                panelDescriptionEditText!!.visibility = View.GONE
-                customerIdEditText!!.visibility = View.GONE
+                progressTextView.show().text = getString(R.string.search_for_nearby_panel)
 
-                progressBar!!.visibility = View.VISIBLE
-                progressTextView!!.visibility = View.VISIBLE
-                progressTextView!!.setText(R.string.search_for_nearby_panel)
+                dialogView.panelDescriptionEditText.gone()
+                dialogView.customerIdEditText.gone()
 
-                firstUserActionButton!!.visibility = View.GONE
-                secondUserActionButton!!.visibility = View.GONE
+                dialogView.progressBar.show()
+
+                dialogView.firstUserActionButton.gone()
+
+                dialogView.secondUserActionButton.gone()
             }
 
             NO_PANEL_FOUND -> {
-                panelDescriptionEditText!!.visibility = View.GONE
-                customerIdEditText!!.visibility = View.GONE
+                dialogView.progressTextView.show().text = getString(R.string.no_nearby_panels_were_found)
 
-                progressTextView!!.visibility = View.VISIBLE
-                progressTextView!!.setText(R.string.no_nearby_panels_were_found)
-                progressBar!!.visibility = View.INVISIBLE
+                dialogView.panelDescriptionEditText.gone()
+                dialogView.customerIdEditText.gone()
 
-                firstUserActionButton!!.setText(R.string.search_again)
-                firstUserActionButton!!.visibility = View.VISIBLE
-                firstUserActionButton!!.setOnClickListener { v -> searchForPanel() }
-                secondUserActionButton!!.visibility = View.GONE
+                dialogView.progressBar.hide()
+
+                dialogView.firstUserActionButton.show().setText(R.string.search_again)
+                dialogView.firstUserActionButton.setOnClickListener( { searchForPanel()} )
+
+                dialogView.secondUserActionButton.gone()
             }
 
-
             PANEL_FOUND -> {
-                panelDescriptionEditText!!.visibility = View.VISIBLE
-                panelDescriptionEditText!!.setText(foundPanelInfo!!.description)
-                panelDescriptionEditText!!.addTextChangedListener(object : TextWatcher {
+                dialogView.panelDescriptionEditText.show().setText(foundPanelInfo.description)
+                dialogView.panelDescriptionEditText.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
 
                     override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
 
                     override fun afterTextChanged(newPanelDescription: Editable) {
                         if (!isEnteredPanelDescriptionValid) {
-                            Toast.makeText(activity, getString(R.string.description_requirements), Toast.LENGTH_SHORT).show()
+                            context.toast(getString(R.string.description_requirements))
                         }
 
-                        firstUserActionButton!!.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
+                        dialogView.firstUserActionButton.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
                     }
                 })
 
-                customerIdEditText!!.visibility = View.VISIBLE
-                if (foundPanelInfo!!.customerId!!.isPresent) {
-                    customerIdEditText!!.setText(foundPanelInfo!!.customerId!!.get())
-                } else {
-                    customerIdEditText!!.hint = activity.getString(R.string.enter_customer_id)
+                dialogView.customerIdEditText.apply {
+                    show()
+                    hint = activity.getString(R.string.enter_customer_id)
+                    takeIf { foundPanelInfo.customerId != null } ?.setText(foundPanelInfo.customerId)
                 }
-                customerIdEditText!!.addTextChangedListener(object : TextWatcher {
+
+                customerIdEditText.addTextChangedListener(object : TextWatcher {
                     override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
 
                     override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
@@ -199,58 +165,58 @@ class ConfigurePanelDialogFragment : DialogFragment() {
                             Toast.makeText(activity, getString(R.string.customer_id_requirements), Toast.LENGTH_SHORT).show()
                         }
 
-                        firstUserActionButton!!.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
+                        firstUserActionButton.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
                     }
                 })
 
-                progressTextView!!.visibility = View.INVISIBLE
-                progressBar!!.visibility = View.INVISIBLE
+                progressTextView.hide()
+                progressBar.hide()
 
-                firstUserActionButton!!.text = activity.getString(R.string.configure_panel)
-                firstUserActionButton!!.visibility = View.VISIBLE
-                firstUserActionButton!!.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
-                firstUserActionButton!!.setOnClickListener { v ->
-                    val updatedPanelInfo = PanelInfo(panelDescriptionEditText!!.text.toString(),
-                            customerIdEditText!!.text.toString())
+                firstUserActionButton.text = activity.getString(R.string.configure_panel)
+                firstUserActionButton.show()
+                firstUserActionButton.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
+                firstUserActionButton.setOnClickListener {
+                    val updatedPanelInfo = PanelInfo(panelDescriptionEditText.text.toString(),
+                            customerIdEditText.text.toString())
                     configurePanel(updatedPanelInfo)
                 }
 
-                secondUserActionButton!!.text = activity.getString(R.string.erase_panel)
-                secondUserActionButton!!.visibility = View.VISIBLE
-                secondUserActionButton!!.setOnClickListener { v ->
+                secondUserActionButton.text = activity.getString(R.string.erase_panel)
+                secondUserActionButton.show()
+                secondUserActionButton.setOnClickListener {
                     val newPanelInfo = PanelInfo() // default settings
                     configurePanel(newPanelInfo)
                 }
             }
 
             CONFIGURING_PANEL -> {
-                panelDescriptionEditText!!.visibility = View.GONE
-                customerIdEditText!!.visibility = View.GONE
+                panelDescriptionEditText.gone()
+                customerIdEditText.gone()
 
-                progressBar!!.visibility = View.VISIBLE
-                progressTextView!!.visibility = View.VISIBLE
-                progressTextView!!.setText(R.string.configuring_nearby_panel)
+                progressBar.show()
+                progressTextView.show()
+                progressTextView.setText(R.string.configuring_nearby_panel)
 
-                firstUserActionButton!!.visibility = View.GONE
-                secondUserActionButton!!.visibility = View.GONE
+                firstUserActionButton.gone()
+                secondUserActionButton.gone()
             }
 
             CONFIGURATION_ERROR -> {
-                panelDescriptionEditText!!.visibility = View.INVISIBLE
-                customerIdEditText!!.visibility = View.INVISIBLE
+                panelDescriptionEditText.hide()
+                customerIdEditText.hide()
 
-                progressTextView!!.visibility = View.VISIBLE
-                progressTextView!!.setText(R.string.failed_to_configure_panel)
-                progressBar!!.visibility = View.INVISIBLE
+                progressTextView.show()
+                progressTextView.setText(R.string.failed_to_configure_panel)
+                progressBar.hide()
 
-                firstUserActionButton!!.setText(R.string.OK)
-                firstUserActionButton!!.visibility = View.VISIBLE
-                firstUserActionButton!!.setOnClickListener { v ->
+                firstUserActionButton.setText(R.string.OK)
+                firstUserActionButton.show()
+                firstUserActionButton.setOnClickListener {
                     userState = PANEL_FOUND
                     updateStatusViews()
 
                 }
-                secondUserActionButton!!.visibility = View.INVISIBLE
+                secondUserActionButton.hide()
             }
         }
     }
@@ -260,16 +226,19 @@ class ConfigurePanelDialogFragment : DialogFragment() {
         userState = CONFIGURING_PANEL
         updateStatusViews()
 
-        panelScanProvider!!.updateNearbyPanel(updatedPanelInfo).subscribe(object : CompletableObserver {
+        panelScanProvider.updateNearbyPanel(updatedPanelInfo).subscribe(object : CompletableObserver {
             override fun onSubscribe(d: Disposable) {
                 this@ConfigurePanelDialogFragment.panelDisposable = panelDisposable
             }
 
             override fun onComplete() {
-                if (updatedPanelInfo.customerId!!.isPresent) {
-                    SolarMonitorApp.instance!!.setSolarCustomerId(updatedPanelInfo.customerId!!.get())
-                } else {
-                    SolarMonitorApp.instance!!.solarCustomerId.delete()
+
+                SolarMonitorApp.instance.apply {
+                    if (null != updatedPanelInfo.customerId) {
+                        setSolarCustomerId(updatedPanelInfo.customerId)
+                    } else {
+                        solarCustomerId.delete()
+                    }
                 }
 
                 dismiss()
@@ -288,7 +257,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
         updateStatusViews()
 
         panelScanProvider!!.scanForNearbyPanel().subscribe(object : MaybeObserver<PanelInfo> {
-            override fun onSubscribe(d: Disposable) {
+            override fun onSubscribe(panelDisposable: Disposable) {
                 this@ConfigurePanelDialogFragment.panelDisposable = panelDisposable
             }
 

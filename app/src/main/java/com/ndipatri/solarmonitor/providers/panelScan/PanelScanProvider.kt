@@ -4,13 +4,9 @@ package com.ndipatri.solarmonitor.providers.panelScan
 import android.content.Context
 import android.support.test.espresso.IdlingResource
 import android.util.Log
-
 import com.ndipatri.iot.googleproximity.GoogleProximity
 import com.ndipatri.iot.googleproximity.utils.BeaconScanHelper
 import com.ndipatri.solarmonitor.R
-
-import org.altbeacon.beacon.Beacon
-
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.MaybeObserver
@@ -19,7 +15,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.MaybeSubject
 
-class PanelScanProvider(protected var context: Context) {
+class PanelScanProvider(var context: Context) {
 
     private val idlingResource = PanelScanProviderIdlingResource()
 
@@ -120,13 +116,9 @@ class PanelScanProvider(protected var context: Context) {
 
                 // We're getting the first 'beaconUpdate' element emitted,
                 // which would include a beacon.
-                .flatMapCompletable { beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), configPanelInfo.attachment) }
+                .flatMapCompletable { beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(configPanelInfo.description, configPanelInfo.customerId)) }
                 .doFinally { idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_IDLE) }
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-    }
-
-    fun getIdlingResource(): IdlingResource {
-        return idlingResource
     }
 
     class PanelScanProviderIdlingResource : IdlingResource {
