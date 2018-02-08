@@ -63,7 +63,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
         debug {
-            minifyEnabled true
+            minifyEnabled false
             debuggable true
             signingConfig signingConfigs.dev
 
@@ -72,68 +72,47 @@ android {
     }
 }
 
-final ESPRESSO_VERSION = '2.2.2';
+final ESPRESSO_VERSION = '3.0.1'
+final TEST_RUNNER = '1.0.1'
+final DAGGER_VERSION = '2.12'
+final RETROFIT_VERSION = '2.2.0'
+final SUPPORT_VERSION = rootProject.ext.get("currentSupportLibVersion")
 
 dependencies {
-    androidTestImplementation("com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}") {
-        exclude module: 'support-annotations'
-        exclude group: 'com.android.support', module: 'appcompat'
-        exclude group: 'com.android.support', module: 'support-v4'
-        exclude module: 'recyclerview-v7'
-        exclude module: 'design'
-    }
-
-    implementation 'com.android.support:appcompat-v7:25.3.1'
-
     implementation "com.android.support.test.espresso:espresso-idling-resource:${ESPRESSO_VERSION}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}"
+    androidTestImplementation "com.android.support.test:runner:${TEST_RUNNER}"
+    androidTestImplementation "com.android.support.test:rules:${TEST_RUNNER}"
+    androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
+    androidTestImplementation 'org.mockito:mockito-core:2.11.0'
+    androidTestImplementation "com.android.support:support-annotations:${SUPPORT_VERSION}"
+    kaptAndroidTest "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
 
+    testImplementation 'org.robolectric:robolectric:3.6.1'
+    testImplementation 'org.mockito:mockito-core:2.11.0'
+    testImplementation 'junit:junit:4.12'
+
+    implementation "com.android.support:appcompat-v7:${SUPPORT_VERSION}"
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.android.support:design:25.3.1'
+    implementation "com.android.support:design:${SUPPORT_VERSION}"
 
-    androidTestImplementation("com.android.support.test.espresso:espresso-contrib:${ESPRESSO_VERSION}") {
-        exclude module: 'support-annotations'
-        exclude group: 'com.android.support', module: 'appcompat'
-        exclude group: 'com.android.support', module: 'support-v4'
-        exclude module: 'recyclerview-v7'
-        exclude module: 'design'
-    }
-
-    implementation 'com.google.code.gson:gson:2.4'
+    implementation 'com.google.code.gson:gson:2.8.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.0.5'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    implementation 'com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1'
+    implementation ("com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1") {
+        exclude module: 'support-annotations'
+    }
     implementation 'com.cantrowitz:rxbroadcast:2.0.0'
-
-    implementation "com.squareup.retrofit2:retrofit:2.2.0"
-    implementation "com.squareup.retrofit2:converter-gson:2.2.0"
-    implementation "com.squareup.retrofit2:adapter-rxjava2:2.2.0"
+    implementation "com.squareup.retrofit2:retrofit:${RETROFIT_VERSION}"
+    implementation "com.squareup.retrofit2:converter-gson:${RETROFIT_VERSION}"
+    implementation "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_VERSION}"
 
     // apt command comes from the android-apt plugin
-    implementation "com.google.dagger:dagger:2.7"
-    kapt "com.google.dagger:dagger-compiler:2.7"
+    implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
+    kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
     implementation 'commons-codec:commons-codec:1.10'
-
-    implementation group: 'com.google.guava', name: 'guava', version: '20.0'
-
-    androidTestAnnotationProcessor 'com.google.dagger:dagger-compiler:2.9'
-
-    testImplementation 'org.robolectric:robolectric:3.6.1'
-
-    // dexmaker libraries are required to create Dalvik VM compatible mocks for Espresso.
-    androidTestImplementation 'com.google.dexmaker:dexmaker:1.2'
-    androidTestImplementation 'com.google.dexmaker:dexmaker-mockito:1.2';
-    // Notice dexmaker has a requirement on mockito.. it can only deal with an earlier version.
-    androidTestImplementation 'org.mockito:mockito-core:1.10.19'
-
-    // However, for unit tests... we can use the latest.
-    testImplementation 'org.mockito:mockito-core:2.11.0'
-
-    androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
-
-    testImplementation 'junit:junit:4.12'
-    implementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
 
     implementation ("com.ndipatri.iot:lib-google-proximity:1.25") {
         exclude module: 'mediarouter-v7'

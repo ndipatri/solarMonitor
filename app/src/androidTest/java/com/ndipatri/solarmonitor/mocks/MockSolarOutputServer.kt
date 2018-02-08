@@ -35,7 +35,7 @@ class MockSolarOutputServer {
     /**
      * For Weather Server, we will assume all requests are GET requests...
      */
-    internal var requestToMockResponseMap: MutableMap<String, List<MockResponse>> = HashMap()
+    internal var requestToMockResponseMap: MutableMap<String, ArrayList<MockResponse>> = HashMap()
     internal val dispatcher: Dispatcher = object : Dispatcher() {
 
         @Throws(InterruptedException::class)

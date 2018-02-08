@@ -1,11 +1,15 @@
 package com.ndipatri.solarmonitor
 
 import android.content.Intent
+import android.support.test.InstrumentationRegistry.getInstrumentation
 import android.support.test.espresso.Espresso
-import android.support.test.espresso.IdlingResource
+import android.support.test.espresso.Espresso.onView
+import android.support.test.espresso.action.ViewActions.click
+import android.support.test.espresso.assertion.PositionAssertions.isAbove
+import android.support.test.espresso.assertion.ViewAssertions.matches
+import android.support.test.espresso.matcher.ViewMatchers.*
 import android.support.test.rule.ActivityTestRule
 import android.support.test.runner.AndroidJUnit4
-
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockObjectGraph
 import com.ndipatri.solarmonitor.container.TestObjectGraph
@@ -17,50 +21,36 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPowe
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
-
-import org.hamcrest.Matcher
+import io.reactivex.Maybe
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.endsWith
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-
-import java.net.MalformedURLException
-
-import javax.inject.Inject
-
-import io.reactivex.Maybe
-
-import android.support.test.InstrumentationRegistry.getInstrumentation
-import android.support.test.espresso.Espresso.onView
-import android.support.test.espresso.action.ViewActions.click
-import android.support.test.espresso.assertion.PositionAssertions.isAbove
-import android.support.test.espresso.assertion.ViewAssertions.matches
-import android.support.test.espresso.matcher.ViewMatchers.isCompletelyDisplayed
-import android.support.test.espresso.matcher.ViewMatchers.isDisplayed
-import android.support.test.espresso.matcher.ViewMatchers.withId
-import android.support.test.espresso.matcher.ViewMatchers.withText
-import org.hamcrest.CoreMatchers.endsWith
-import org.hamcrest.CoreMatchers.`is`
 import org.mockito.Mockito.`when`
+import java.net.MalformedURLException
+import javax.inject.Inject
 
 @RunWith(AndroidJUnit4::class)
 class MainActivityInstrumentationTest {
 
     @Rule
+    @JvmField
     var activityRule = ActivityTestRule<MainActivity>(MainActivity::class.java, true, false)
 
     // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
     // while the background thread is running in our target application. (only those background
     // operations that are using RxJava's IO and Computation schedulers, that is)
     @Rule
-    val asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
+    @JvmField
+    var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
 
     @Inject
-    internal var solarOutputProvider: SolarOutputProvider? = null
-    @Inject
-    internal var panelScanProvider: PanelScanProvider? = null
+    lateinit var solarOutputProvider: SolarOutputProvider
 
-    private val idlingResource: IdlingResource? = null
+    @Inject
+    lateinit var panelScanProvider: PanelScanProvider
 
     @Before
     @Throws(Exception::class)
@@ -95,7 +85,7 @@ class MainActivityInstrumentationTest {
         testObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        val idlingResource = panelScanProvider!!.idlingResource
+        val idlingResource = panelScanProvider.idlingResource
         Espresso.registerIdlingResources(idlingResource)
 
         activityRule.launchActivity(Intent())
@@ -162,37 +152,31 @@ class MainActivityInstrumentationTest {
 
     @Throws(MalformedURLException::class)
     private fun configureMockEndpoint(currentPowerValue: Double?, lifetimeEnergyValue: Double?, solarCustomerId: String, solarApiKey: String) {
+
+        val mockOverview = Overview().apply {
+            currentPower = CurrentPower().apply { power = currentPowerValue }
+            lifeTimeData = LifeTimeData().apply { energy = lifetimeEnergyValue }
+        }
+
+        val getOverviewResponse = GetOverviewResponse().apply { overview = mockOverview }
+
         // We deploy a MockWebServer to the same virtual machine as our
         // target APK
-        val mockSolarOutputServer = MockSolarOutputServer()
+        val mockSolarOutputServer = MockSolarOutputServer().apply {
+                enqueueDesiredSolarOutputResponse(getOverviewResponse,
+                                                  solarCustomerId,
+                                                  solarApiKey)
 
-        val getOverviewResponse = GetOverviewResponse()
-
-        val currentPower = CurrentPower()
-        currentPower.power = currentPowerValue
-
-        val lifeTimeData = LifeTimeData()
-        lifeTimeData.energy = lifetimeEnergyValue
-
-        val overview = Overview()
-        overview.currentPower = currentPower
-        overview.lifeTimeData = lifeTimeData
-
-        getOverviewResponse.overview = overview
-
-        mockSolarOutputServer.enqueueDesiredSolarOutputResponse(getOverviewResponse,
-                solarCustomerId,
-                solarApiKey)
-
-        mockSolarOutputServer.beginUsingMockServer()
+                beginUsingMockServer()
+        }
 
         // This is the only way in which our Test APK deviates from production.  We need to
         // point our service to the mock endpoint (mockWebServer)
-        SolarOutputProvider.API_ENDPOINT_BASE_URL = mockSolarOutputServer.mockSolarOutputServerURL
+        SolarOutputProvider.API_ENDPOINT_BASE_URL = mockSolarOutputServer.mockSolarOutputServerURL!!
     }
 
     private fun configureMockHardware(desiredPanelDesc: String, desiredPanelId: String) {
-        `when`(panelScanProvider!!.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
+        `when`(panelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
             val panelInfo = PanelInfo(desiredPanelDesc, desiredPanelId)
 
             subscriber.onSuccess(panelInfo)

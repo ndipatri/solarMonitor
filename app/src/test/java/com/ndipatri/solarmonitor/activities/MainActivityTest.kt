@@ -85,7 +85,7 @@ class MainActivityTest {
         // Creates, starts, resumes activity ...
         controller.setup()
 
-        activity.findViewById(R.id.scanFAB).performClick()
+        activity.scanFAB.performClick()
 
         // Because we've configured our scan response to be delayed above, we will be waiting for results...
 

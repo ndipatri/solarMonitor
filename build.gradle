@@ -6,14 +6,15 @@ allprojects {
         mavenLocal()
         jcenter()
         maven { url 'https://dl.bintray.com/ndipatri/maven' }
+        google()
     }
 
     ext {
         currentGradleVersion = "4.3"
         currentBuildToolsVersion = "26.0.2"
-        currentSupportLibVersion = "26.0.2"
-        currentCompileSdkVersion = 25
-        currentMinSdkVersion = 24
+        currentSupportLibVersion = "27.0.2"
+        currentCompileSdkVersion = 26
+        currentMinSdkVersion = 26
         currentTargetSdkVersion = 25
     }
 }
@@ -50,4 +51,10 @@ subprojects {
 
 task wrapper(type: Wrapper) {
     gradleVersion = project.ext.get("currentGradleVersion")
+}
+
+buildscript {
+    repositories {
+        google()
+    }
 }

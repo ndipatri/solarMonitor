@@ -17,7 +17,7 @@ import io.reactivex.subjects.MaybeSubject
 
 class PanelScanProvider(var context: Context) {
 
-    private val idlingResource = PanelScanProviderIdlingResource()
+    val idlingResource = PanelScanProviderIdlingResource()
 
     /**
      * Possible outcomes:

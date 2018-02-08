@@ -14,7 +14,7 @@ class SolarMonitorApp : Application() {
         instance = this
     }
 
-    val objectGraph = ObjectGraph.Initializer.init(this)
+    var objectGraph = ObjectGraph.Initializer.init(this)
 
     private lateinit var sharedPreferences: RxSharedPreferences
 

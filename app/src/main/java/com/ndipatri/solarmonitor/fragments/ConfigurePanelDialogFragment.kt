@@ -142,7 +142,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
 
                     override fun afterTextChanged(newPanelDescription: Editable) {
                         if (!isEnteredPanelDescriptionValid) {
-                            context.toast(getString(R.string.description_requirements))
+                            context!!.toast(getString(R.string.description_requirements))
                         }
 
                         dialogView.firstUserActionButton.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
@@ -151,7 +151,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
 
                 dialogView.customerIdEditText.apply {
                     show()
-                    hint = activity.getString(R.string.enter_customer_id)
+                    hint = activity!!.getString(R.string.enter_customer_id)
                     takeIf { foundPanelInfo.customerId != null } ?.setText(foundPanelInfo.customerId)
                 }
 
@@ -172,7 +172,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
                 progressTextView.hide()
                 progressBar.hide()
 
-                firstUserActionButton.text = activity.getString(R.string.configure_panel)
+                firstUserActionButton.text = activity!!.getString(R.string.configure_panel)
                 firstUserActionButton.show()
                 firstUserActionButton.isEnabled = isEnteredCustomerIdValid && isEnteredPanelDescriptionValid
                 firstUserActionButton.setOnClickListener {
@@ -181,7 +181,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
                     configurePanel(updatedPanelInfo)
                 }
 
-                secondUserActionButton.text = activity.getString(R.string.erase_panel)
+                secondUserActionButton.text = activity!!.getString(R.string.erase_panel)
                 secondUserActionButton.show()
                 secondUserActionButton.setOnClickListener {
                     val newPanelInfo = PanelInfo() // default settings
