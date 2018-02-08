@@ -1,18 +1,16 @@
 package com.ndipatri.solarmonitor.activities
 
 import android.os.Bundle
+import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.Toolbar
 import android.util.Log
 import android.widget.Toast
-import com.ndipatri.solarmonitor.R
-import com.ndipatri.solarmonitor.SolarMonitorApp
+import com.ndipatri.solarmonitor.*
 import com.ndipatri.solarmonitor.activities.MainActivity.USER_STATE.*
-import com.ndipatri.solarmonitor.gone
 import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo
 import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
-import com.ndipatri.solarmonitor.show
 import io.reactivex.MaybeObserver
 import io.reactivex.SingleObserver
 import io.reactivex.disposables.Disposable
@@ -89,24 +87,24 @@ class MainActivity : BaseActivity() {
         when (userState) {
             SCAN -> {
                 mainTextView.show().text = getString(R.string.click_to_find_nearby_solar_panel)
-                detailTextView.gone()
+                detailTextView.hide()
 
                 refreshProgressBar.gone()
 
-                scanFAB.show()
-                loadFAB.hide()
-                configureFAB.hide()
+                scanFAB._show()
+                loadFAB._hide()
+                configureFAB._hide()
             }
 
             SCANNING -> {
                 mainTextView.show().text = getString(R.string.finding_nearby_solar_panel)
-                detailTextView.gone()
+                detailTextView.hide()
 
                 refreshProgressBar.show()
 
-                scanFAB.hide()
-                loadFAB.hide()
-                configureFAB.hide()
+                scanFAB._hide()
+                loadFAB._hide()
+                configureFAB._hide()
             }
 
             CONFIGURE -> {
@@ -115,9 +113,9 @@ class MainActivity : BaseActivity() {
 
                 refreshProgressBar.gone()
 
-                scanFAB.hide()
-                loadFAB.hide()
-                configureFAB.show()
+                scanFAB._hide()
+                loadFAB._hide()
+                configureFAB._show()
             }
 
             LOAD -> {
@@ -126,9 +124,9 @@ class MainActivity : BaseActivity() {
 
                 refreshProgressBar.gone()
 
-                scanFAB.show()
-                loadFAB.show()
-                configureFAB.hide()
+                scanFAB._show()
+                loadFAB._show()
+                configureFAB._hide()
             }
 
             LOADING -> {
@@ -137,9 +135,9 @@ class MainActivity : BaseActivity() {
 
                 refreshProgressBar.show()
 
-                scanFAB.hide()
-                loadFAB.hide()
-                configureFAB.hide()
+                scanFAB._hide()
+                loadFAB._hide()
+                configureFAB._hide()
             }
 
             LOADED -> {
@@ -147,7 +145,7 @@ class MainActivity : BaseActivity() {
                 mainTextView.show().text =
 
                 "current: ${currentPowerOutput!!.currentPowerInWatts} watts," +
-                "lifetime: ${currentPowerOutput!!.lifeTimeEnergyInWattHours} wattsHours."
+                " lifetime: ${currentPowerOutput!!.lifeTimeEnergyInWattHours} wattHours."
 
                 detailTextView.show().text =
 
@@ -155,9 +153,9 @@ class MainActivity : BaseActivity() {
 
                 refreshProgressBar.gone()
 
-                scanFAB.show()
-                loadFAB.show()
-                configureFAB.hide()
+                scanFAB._show()
+                loadFAB._show()
+                configureFAB._hide()
             }
         }
     }
