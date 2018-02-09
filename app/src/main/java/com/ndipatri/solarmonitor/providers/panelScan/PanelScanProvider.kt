@@ -15,7 +15,7 @@ import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.MaybeSubject
 
-class PanelScanProvider(var context: Context) {
+open class PanelScanProvider(var context: Context) {
 
     val idlingResource = PanelScanProviderIdlingResource()
 
@@ -35,7 +35,7 @@ class PanelScanProvider(var context: Context) {
      */
     private var scanForNearbyPanelSubject: MaybeSubject<PanelInfo>? = null
 
-    fun scanForNearbyPanel(): Maybe<PanelInfo> {
+    open fun scanForNearbyPanel(): Maybe<PanelInfo> {
 
         idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_NOT_IDLE)
 
@@ -103,7 +103,7 @@ class PanelScanProvider(var context: Context) {
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 
-    fun updateNearbyPanel(configPanelInfo: PanelInfo): Completable {
+    open fun updateNearbyPanel(configPanelInfo: PanelInfo): Completable {
 
         idlingResource.updateIdleState(PanelScanProviderIdlingResource.IS_NOT_IDLE)
 
@@ -121,7 +121,7 @@ class PanelScanProvider(var context: Context) {
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 
-    class PanelScanProviderIdlingResource : IdlingResource {
+    open class PanelScanProviderIdlingResource : IdlingResource {
 
         @Volatile
         private var resourceCallback: IdlingResource.ResourceCallback? = null

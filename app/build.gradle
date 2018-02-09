@@ -81,11 +81,14 @@ final SUPPORT_VERSION = rootProject.ext.get("currentSupportLibVersion")
 dependencies {
     implementation "com.android.support.test.espresso:espresso-idling-resource:${ESPRESSO_VERSION}"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:${ESPRESSO_VERSION}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-web:${ESPRESSO_VERSION}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-contrib:${ESPRESSO_VERSION}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-intents:${ESPRESSO_VERSION}"
     androidTestImplementation "com.android.support.test:runner:${TEST_RUNNER}"
     androidTestImplementation "com.android.support.test:rules:${TEST_RUNNER}"
     androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
-    androidTestImplementation 'org.mockito:mockito-core:2.11.0'
     androidTestImplementation "com.android.support:support-annotations:${SUPPORT_VERSION}"
+    androidTestImplementation 'org.mockito:mockito-android:2.13.0'
     kaptAndroidTest "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
 
     testImplementation 'org.robolectric:robolectric:3.6.1'
@@ -96,13 +99,13 @@ dependencies {
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation "com.android.support:design:${SUPPORT_VERSION}"
 
-    implementation 'com.google.code.gson:gson:2.8.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.0.5'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation ("com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1") {
         exclude module: 'support-annotations'
     }
     implementation 'com.cantrowitz:rxbroadcast:2.0.0'
+
     implementation "com.squareup.retrofit2:retrofit:${RETROFIT_VERSION}"
     implementation "com.squareup.retrofit2:converter-gson:${RETROFIT_VERSION}"
     implementation "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_VERSION}"
@@ -113,6 +116,8 @@ dependencies {
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
     implementation 'commons-codec:commons-codec:1.10'
+
+    implementation 'com.google.code.gson:gson:2.8.1'
 
     implementation ("com.ndipatri.iot:lib-google-proximity:1.25") {
         exclude module: 'mediarouter-v7'

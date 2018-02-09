@@ -9,7 +9,6 @@ import android.support.test.espresso.assertion.PositionAssertions.isAbove
 import android.support.test.espresso.assertion.ViewAssertions.matches
 import android.support.test.espresso.matcher.ViewMatchers.*
 import android.support.test.rule.ActivityTestRule
-import android.support.test.runner.AndroidJUnit4
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockObjectGraph
 import com.ndipatri.solarmonitor.container.TestObjectGraph
@@ -27,12 +26,10 @@ import org.hamcrest.CoreMatchers.endsWith
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.mockito.Mockito.`when`
 import java.net.MalformedURLException
 import javax.inject.Inject
 
-@RunWith(AndroidJUnit4::class)
 class MainActivityInstrumentationTest {
 
     @Rule
@@ -143,8 +140,6 @@ class MainActivityInstrumentationTest {
          * Ok, now to actually do some testing!
          */
 
-        //Thread.sleep(6000000);
-
         // We know the panelId our mock hardware beacon is emitting, and we know the
         // output that will be returned from our mocked RESTful endpoint.
         assertLoadingSolarOutputViews(mockSolarOutput, mockLifetimeOutput, mockPanelId)
@@ -186,6 +181,9 @@ class MainActivityInstrumentationTest {
     private fun assertFindingPanelViews(expectedPanelId: String) {
         onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()))
 
+        // NJD TODO - first one fails.. don't know why
+        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
+
         onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
 
         // No need to wait for real hardware to scan for panel.. because our test thread is
@@ -195,6 +193,7 @@ class MainActivityInstrumentationTest {
     }
 
     private fun assertLoadingSolarOutputViews(expectedSolarOutput: Double?, expectedLifetimeOutput: Double?, expectedPanelId: String) {
+
         onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
 
         // No need to wait for real hardware to scan for panel.. because our test thread is
