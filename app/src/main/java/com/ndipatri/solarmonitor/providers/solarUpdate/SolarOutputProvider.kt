@@ -19,8 +19,9 @@ import java.util.concurrent.TimeUnit
 
 class SolarOutputProvider(val apiKey: String) {
 
-    private val solarOutputRESTEndpoint: Single<SolarOutputRESTInterface>
-        get() = Single.create { subscribe: SingleEmitter<SolarOutputRESTInterface> ->
+    private val solarOutputRESTEndpoint: Single<SolarOutputRESTInterface> by lazy {
+
+        Single.create { subscribe: SingleEmitter<SolarOutputRESTInterface> ->
 
             val retrofitBuilder = Retrofit.Builder()
                     .baseUrl(API_ENDPOINT_BASE_URL)
@@ -34,8 +35,9 @@ class SolarOutputProvider(val apiKey: String) {
             }
         }
 
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .cache()
+        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        .cache()
+    }
 
     fun getSolarOutput(customerId: String): Single<PowerOutput> {
         return solarOutputRESTEndpoint
