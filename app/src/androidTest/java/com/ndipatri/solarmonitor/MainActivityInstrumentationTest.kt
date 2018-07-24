@@ -13,8 +13,8 @@ import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockObjectGraph
 import com.ndipatri.solarmonitor.container.TestObjectGraph
 import com.ndipatri.solarmonitor.mocks.MockSolarOutputServer
-import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo
-import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider
+import com.ndipatri.solarmonitor.providers.panelScan.Panel
+import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPower
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
@@ -47,7 +47,7 @@ class MainActivityInstrumentationTest {
     lateinit var solarOutputProvider: SolarOutputProvider
 
     @Inject
-    lateinit var panelScanProvider: PanelScanProvider
+    lateinit var panelProvider: PanelProvider
 
     @Before
     @Throws(Exception::class)
@@ -82,7 +82,7 @@ class MainActivityInstrumentationTest {
         testObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        val idlingResource = panelScanProvider.idlingResource
+        val idlingResource = panelProvider.idlingResource
         Espresso.registerIdlingResources(idlingResource)
 
         activityRule.launchActivity(Intent())
@@ -171,8 +171,8 @@ class MainActivityInstrumentationTest {
     }
 
     private fun configureMockHardware(desiredPanelDesc: String, desiredPanelId: String) {
-        `when`(panelScanProvider.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
-            val panelInfo = PanelInfo(desiredPanelDesc, desiredPanelId)
+        `when`(panelProvider.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
+            val panelInfo = Panel(desiredPanelDesc, desiredPanelId)
 
             subscriber.onSuccess(panelInfo)
         })

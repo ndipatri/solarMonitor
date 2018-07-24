@@ -5,8 +5,8 @@ import android.view.View
 import android.widget.TextView
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
-import com.ndipatri.solarmonitor.providers.panelScan.PanelInfo
-import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider
+import com.ndipatri.solarmonitor.providers.panelScan.Panel
+import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import io.reactivex.Maybe
@@ -33,7 +33,7 @@ class MainActivityTest {
 
     private lateinit var controller: ActivityController<MainActivity>
     private lateinit var activity: MainActivity
-    private lateinit var mockPanelScanProvider: PanelScanProvider
+    private lateinit var mockPanelProvider: PanelProvider
     private lateinit var mockSolarOutputProvider: SolarOutputProvider
 
     @Before
@@ -45,8 +45,8 @@ class MainActivityTest {
         activity = controller.get()
 
         // Now we mock out collaborators
-        activity.panelScanProvider = mock<PanelScanProvider>(PanelScanProvider::class.java)
-        mockPanelScanProvider = activity.panelScanProvider
+        activity.panelProvider = mock<PanelProvider>(PanelProvider::class.java)
+        mockPanelProvider = activity.panelProvider
 
         activity.solarOutputProvider = mock<SolarOutputProvider>(SolarOutputProvider::class.java)
         mockSolarOutputProvider = activity.solarOutputProvider
@@ -77,9 +77,9 @@ class MainActivityTest {
         // and onResume() our activity.
 
         // Because our scan response is delayed, we will be waiting for results...
-        `when`(mockPanelScanProvider
+        `when`(mockPanelProvider
                 .scanForNearbyPanel())
-                    .thenReturn(Maybe.just(PanelInfo("Nicks Solar Panels", "12345"))
+                    .thenReturn(Maybe.just(Panel("Nicks Solar Panels", "12345"))
                         .delay(1000, TimeUnit.MILLISECONDS))
 
         // Creates, starts, resumes activity ...
@@ -111,9 +111,9 @@ class MainActivityTest {
         RxJavaPlugins.setComputationSchedulerHandler { scheduler -> testScheduler }
         RxJavaPlugins.setIoSchedulerHandler { scheduler -> testScheduler }
 
-        `when`(mockPanelScanProvider
+        `when`(mockPanelProvider
             .scanForNearbyPanel())
-                .thenReturn(Maybe.just(PanelInfo("Nicks Solar Panels", "123456"))
+                .thenReturn(Maybe.just(Panel("Nicks Solar Panels", "123456"))
                     .delay(1, TimeUnit.SECONDS))
 
         // Creates, starts, resumes activity ...
@@ -203,7 +203,7 @@ class MainActivityTest {
         // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
         // and onResume() our activity.
 
-        `when`(mockPanelScanProvider
+        `when`(mockPanelProvider
             .scanForNearbyPanel())
                 .thenReturn(Maybe.create { subscriber -> subscriber.onError(TimeoutException()) })
 

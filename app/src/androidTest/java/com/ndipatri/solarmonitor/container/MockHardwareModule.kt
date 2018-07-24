@@ -2,7 +2,7 @@ package com.ndipatri.solarmonitor.container
 
 import android.content.Context
 
-import com.ndipatri.solarmonitor.providers.panelScan.PanelScanProvider
+import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 
 import javax.inject.Singleton
 
@@ -15,7 +15,7 @@ class MockHardwareModule(internal var context: Context) {
 
     @Provides
     @Singleton
-    internal fun providesBluetoothService(context: Context): PanelScanProvider {
-        return mock(PanelScanProvider::class.java)
+    internal fun providesBluetoothService(context: Context): PanelProvider {
+        return mock(PanelProvider::class.java)
     }
 }

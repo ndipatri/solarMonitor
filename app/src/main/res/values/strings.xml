@@ -17,6 +17,8 @@
     <string name="failed_to_configure_panel">Failed to configure panel.</string>
     <string name="OK">OK</string>
     <string name="erase_panel">Erase Panel</string>
+    <string name="description_is_valid">Description is valid.</string>
     <string name="description_requirements">Description must be between 3 and 20 characters.</string>
-    <string name="customer_id_requirements">CustomerId must be 6 digits.</string>
+    <string name="panel_id_is_valid">PanelId is valid.</string>
+    <string name="panel_id_requirements">PanelId must be 6 digits.</string>
 </resources>

@@ -39,7 +39,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
-        android:id="@+id/customerIdEditText"
+        android:id="@+id/panelIdEditText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -91,7 +91,7 @@
         tools:layout_constraintTop_creator="1"
         tools:layout_constraintRight_creator="1"
         android:layout_marginTop="66dp"
-        app:layout_constraintTop_toBottomOf="@+id/customerIdEditText"
+        app:layout_constraintTop_toBottomOf="@+id/panelIdEditText"
         tools:layout_constraintLeft_creator="1"
         app:layout_constraintHorizontal_bias="0.501" />
 

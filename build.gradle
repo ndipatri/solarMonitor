@@ -12,8 +12,9 @@ allprojects {
 
     ext {
         currentGradleVersion = "4.3"
-        currentBuildToolsVersion = "26.0.2"
+        currentBuildToolsVersion = "27.0.3"
         currentSupportLibVersion = "27.0.2"
+        currentArchLifecycleVersion = "1.0.0"
         currentCompileSdkVersion = 26
         currentMinSdkVersion = 26
         currentTargetSdkVersion = 25
