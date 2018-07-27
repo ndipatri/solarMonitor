@@ -5,7 +5,7 @@ import android.view.Menu
 import android.view.MenuItem
 import com.ndipatri.iot.googleproximity.activities.RequirementsActivity
 import com.ndipatri.solarmonitor.R
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment
+import com.ndipatri.solarmonitor.fragments.ConfigDialogFragment
 
 open class BaseActivity : RequirementsActivity() {
 
@@ -36,7 +36,7 @@ open class BaseActivity : RequirementsActivity() {
     //endregion
 
     protected fun launchConfigureFragment() {
-        val dialog = ConfigurePanelDialogFragment()
+        val dialog = ConfigDialogFragment()
         dialog.show(supportFragmentManager.beginTransaction(), "configure panel dialog")
         supportFragmentManager.executePendingTransactions()
         dialog.dialog.setOnDismissListener { handleConfigureFragmentDismiss() }

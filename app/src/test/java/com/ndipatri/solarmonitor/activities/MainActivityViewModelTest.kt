@@ -29,11 +29,12 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
 @RunWith(RobolectricTestRunner::class)
-class MainActivityTest {
+class MainActivityViewModelTest {
 
     private lateinit var controller: ActivityController<MainActivity>
     private lateinit var activity: MainActivity
-    private lateinit var viewModel: MainActivityViewModel
+    private lateinit var mockPanelProvider: PanelProvider
+    private lateinit var mockSolarOutputProvider: SolarOutputProvider
 
     @Before
     fun setUp() {
@@ -44,8 +45,11 @@ class MainActivityTest {
         activity = controller.get()
 
         // Now we mock out collaborators
-        viewModel = mock(MainActivityViewModel::class.java)
-        activity.viewModel = viewModel
+        activity.panelProvider = mock<PanelProvider>(PanelProvider::class.java)
+        mockPanelProvider = activity.panelProvider
+
+        activity.solarOutputProvider = mock<SolarOutputProvider>(SolarOutputProvider::class.java)
+        mockSolarOutputProvider = activity.solarOutputProvider
     }
 
     @Test
@@ -71,6 +75,12 @@ class MainActivityTest {
     fun testClickOnBeaconScanFAB_waitingForScanResults() {
         // We need to configure our mocks for this test BEFORE we onCreate(), onStart(),
         // and onResume() our activity.
+
+        // Because our scan response is delayed, we will be waiting for results...
+        `when`(mockPanelProvider
+                .scanForNearbyPanel())
+                    .thenReturn(Maybe.just(Panel("Nicks Solar Panels", "12345"))
+                        .delay(1000, TimeUnit.MILLISECONDS))
 
         // Creates, starts, resumes activity ...
         controller.setup()

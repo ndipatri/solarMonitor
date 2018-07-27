@@ -1,4 +1,4 @@
-package com.ndipatri.solarmonitor.viewModels
+package com.ndipatri.solarmonitor.fragments
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -14,7 +14,7 @@ import io.reactivex.disposables.Disposable
 import java.util.regex.Pattern
 import javax.inject.Inject
 
-open class ConfigurePanelViewModel(context: Application) : AndroidViewModel(context) {
+open class ConfigDialogFragmentViewModel(context: Application) : AndroidViewModel(context) {
 
     init {
         SolarMonitorApp.instance.objectGraph.inject(this)
@@ -79,13 +79,13 @@ open class ConfigurePanelViewModel(context: Application) : AndroidViewModel(cont
 
         panelProvider.scanForNearbyPanel().subscribe(object : MaybeObserver<Panel> {
             override fun onSubscribe(disposable: Disposable) {
-                this@ConfigurePanelViewModel.disposable = disposable
+                this@ConfigDialogFragmentViewModel.disposable = disposable
             }
 
             override fun onSuccess(scannedPanel: Panel) {
                 Log.d(TAG, "Panel found.  Trying to configure ...")
 
-                this@ConfigurePanelViewModel.scannedPanel.value = scannedPanel
+                this@ConfigDialogFragmentViewModel.scannedPanel.value = scannedPanel
 
                 newPanelDescriptionEntered(scannedPanel.description, sendUserMessage = false)
                 newPanelIdEntered(scannedPanel.id, sendUserMessage = false)
@@ -118,7 +118,7 @@ open class ConfigurePanelViewModel(context: Application) : AndroidViewModel(cont
             }
 
             override fun onSubscribe(disposable: Disposable?) {
-                this@ConfigurePanelViewModel.disposable = disposable
+                this@ConfigDialogFragmentViewModel.disposable = disposable
             }
 
             override fun onError(e: Throwable?) {
@@ -136,7 +136,7 @@ open class ConfigurePanelViewModel(context: Application) : AndroidViewModel(cont
                 .eraseNearbyPanel()
                 .subscribe(object : CompletableObserver {
                     override fun onSubscribe(disposable: Disposable) {
-                        this@ConfigurePanelViewModel.disposable = disposable
+                        this@ConfigDialogFragmentViewModel.disposable = disposable
                     }
 
                     override fun onComplete() {
@@ -167,6 +167,6 @@ open class ConfigurePanelViewModel(context: Application) : AndroidViewModel(cont
     }
 
     companion object {
-        private val TAG = ConfigurePanelViewModel::class.java.simpleName
+        private val TAG = ConfigDialogFragmentViewModel::class.java.simpleName
     }
 }

@@ -2,12 +2,10 @@ package com.ndipatri.solarmonitor.container
 
 import android.content.Context
 
-import com.ndipatri.solarmonitor.container.DaggerObjectGraph
-import com.ndipatri.solarmonitor.activities.MainActivity
-import com.ndipatri.solarmonitor.fragments.ConfigurePanelDialogFragment
+import com.ndipatri.solarmonitor.fragments.ConfigDialogFragment
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
-import com.ndipatri.solarmonitor.viewModels.ConfigurePanelViewModel
-import com.ndipatri.solarmonitor.viewModels.MainActivityViewModel
+import com.ndipatri.solarmonitor.fragments.ConfigDialogFragmentViewModel
+import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 
 import javax.inject.Singleton
 
@@ -17,8 +15,8 @@ import dagger.Component
 @Component(modules = arrayOf(ServiceModule::class, HardwareModule::class))
 interface ObjectGraph {
     fun inject(thingy: MainActivityViewModel)
-    fun inject(thingy: ConfigurePanelViewModel)
-    fun inject(fragment: ConfigurePanelDialogFragment)
+    fun inject(thingy: ConfigDialogFragmentViewModel)
+    fun inject(fragment: ConfigDialogFragment)
     fun inject(thingy: PanelProvider)
 
     object Initializer {

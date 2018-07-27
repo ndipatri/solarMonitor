@@ -5,14 +5,13 @@ import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
 import com.ndipatri.solarmonitor.*
-import com.ndipatri.solarmonitor.viewModels.MainActivityViewModel
-import com.ndipatri.solarmonitor.viewModels.MainActivityViewModel.USER_STATE.*
+import com.ndipatri.solarmonitor.activities.MainActivityViewModel.USER_STATE.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
 class MainActivity : BaseActivity() {
 
-    private lateinit var viewModel: MainActivityViewModel
+    lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

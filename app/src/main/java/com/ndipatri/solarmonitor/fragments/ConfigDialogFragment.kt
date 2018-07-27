@@ -16,14 +16,12 @@ import android.view.View
 import android.widget.TextView
 import com.ndipatri.iot.googleproximity.GoogleProximity
 import com.ndipatri.solarmonitor.*
-import com.ndipatri.solarmonitor.viewModels.ConfigurePanelViewModel
-import com.ndipatri.solarmonitor.viewModels.ConfigurePanelViewModel.USER_STATE.*
-import com.ndipatri.solarmonitor.viewModels.MainActivityViewModel
+import com.ndipatri.solarmonitor.fragments.ConfigDialogFragmentViewModel.USER_STATE.*
 import kotlinx.android.synthetic.main.fragment_configure_panel.view.*
 
-class ConfigurePanelDialogFragment : DialogFragment() {
+class ConfigDialogFragment : DialogFragment() {
 
-    private lateinit var viewModel: ConfigurePanelViewModel
+    private lateinit var viewModel: ConfigDialogFragmentViewModel
 
     private lateinit var dialogView: View
 
@@ -32,7 +30,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
 
         // This manages all Fragment state.. both storage of state and transitions from one state
         // to another
-        viewModel = ViewModelProviders.of(this).get(ConfigurePanelViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(ConfigDialogFragmentViewModel::class.java)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -79,7 +77,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
     }
 
     private fun subscribeToUserState() {
-        viewModel.userState.observe(this, Observer<ConfigurePanelViewModel.USER_STATE> {
+        viewModel.userState.observe(this, Observer<ConfigDialogFragmentViewModel.USER_STATE> {
 
             when (it) {
                 SEARCHING_FOR_PANEL -> {
@@ -200,7 +198,7 @@ class ConfigurePanelDialogFragment : DialogFragment() {
     }
 
     companion object {
-        private val TAG = ConfigurePanelDialogFragment::class.java!!.getSimpleName()
+        private val TAG = ConfigDialogFragment::class.java!!.getSimpleName()
     }
 }
 

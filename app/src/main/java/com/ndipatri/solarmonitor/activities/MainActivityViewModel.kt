@@ -1,4 +1,4 @@
-package com.ndipatri.solarmonitor.viewModels
+package com.ndipatri.solarmonitor.activities
 
 import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
@@ -41,8 +41,6 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     var scannedPanel = MutableLiveData<Panel>()
 
     var powerOutputMessage = MutableLiveData<String>()
-
-    private var currentPowerOutput: PowerOutput? = null
 
     private var disposable: Disposable? = null
 
