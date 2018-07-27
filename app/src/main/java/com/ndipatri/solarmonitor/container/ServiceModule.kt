@@ -20,6 +20,7 @@ class ServiceModule(internal var context: Context) {
         return context
     }
 
+    // NDJ TODO - singleton?
     @Provides
     internal fun providesSolarOutput(context: Context): SolarOutputProvider {
 

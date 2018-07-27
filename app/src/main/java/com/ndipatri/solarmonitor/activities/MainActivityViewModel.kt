@@ -38,6 +38,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
     var userState = MutableLiveData<USER_STATE>().also { it.setValue(USER_STATE.IDLE) }
 
+    // NJD TODO - doesn't need to be LiveData
     var scannedPanel = MutableLiveData<Panel>()
 
     var powerOutputMessage = MutableLiveData<String>()
@@ -52,31 +53,6 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
         LOADING, // user is loading solar output
         LOADED
     } // user is viewing loaded solar output
-
-
-    fun resetToSteadyState() {
-        panelProvider.getStoredPanel().subscribe(object : MaybeObserver<Panel> {
-            override fun onSuccess(storedPanel: Panel) {
-
-                // For now, we pretend we scanned for the stored panel. The user
-                // can scan for new panels as they wish
-                this@MainActivityViewModel.scannedPanel.value = storedPanel
-                userState.value = USER_STATE.LOAD
-            }
-
-            override fun onComplete() {
-                userState.value = USER_STATE.IDLE
-            }
-
-            override fun onSubscribe(disposable: Disposable) {
-                this@MainActivityViewModel.disposable = disposable
-            }
-
-            override fun onError(e: Throwable?) {
-                userState.value = USER_STATE.IDLE
-            }
-        })
-    }
 
     fun scanForNearbyPanel() {
 
@@ -162,6 +138,30 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
         super.onCleared()
 
         disposable?.dispose()
+    }
+
+    private fun resetToSteadyState() {
+        panelProvider.getStoredPanel().subscribe(object : MaybeObserver<Panel> {
+            override fun onSuccess(storedPanel: Panel) {
+
+                // For now, we pretend we scanned for the stored panel. The user
+                // can scan for new panels as they wish
+                this@MainActivityViewModel.scannedPanel.value = storedPanel
+                userState.value = USER_STATE.LOAD
+            }
+
+            override fun onComplete() {
+                userState.value = USER_STATE.IDLE
+            }
+
+            override fun onSubscribe(disposable: Disposable) {
+                this@MainActivityViewModel.disposable = disposable
+            }
+
+            override fun onError(e: Throwable?) {
+                userState.value = USER_STATE.IDLE
+            }
+        })
     }
 
     companion object {
