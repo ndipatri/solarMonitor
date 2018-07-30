@@ -74,7 +74,7 @@ android {
 
 final ESPRESSO_VERSION = '3.0.1'
 final TEST_RUNNER = '1.0.1'
-final DAGGER_VERSION = '2.12'
+final DAGGER_VERSION = '2.15'
 final RETROFIT_VERSION = '2.2.0'
 final SUPPORT_VERSION = rootProject.ext.get("currentSupportLibVersion")
 final ARCH_LIFECYCLE_VERSION = rootProject.ext.get("currentArchLifecycleVersion")
@@ -90,7 +90,9 @@ dependencies {
     androidTestImplementation 'com.squareup.okhttp3:mockwebserver:3.6.0'
     androidTestImplementation "com.android.support:support-annotations:${SUPPORT_VERSION}"
     androidTestImplementation 'org.mockito:mockito-android:2.13.0'
+    androidTestImplementation "android.arch.core:core-testing:${ARCH_LIFECYCLE_VERSION}"
     kaptAndroidTest "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
+    kaptAndroidTest "com.google.dagger:dagger-android-processor:${DAGGER_VERSION}"
 
     testImplementation 'org.robolectric:robolectric:3.6.1'
     testImplementation 'org.mockito:mockito-core:2.11.0'
@@ -118,8 +120,11 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_VERSION}"
 
     // apt command comes from the android-apt plugin
-    implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
+    implementation "com.google.dagger:dagger-android:${DAGGER_VERSION}"
+    implementation "com.google.dagger:dagger-android-support:${DAGGER_VERSION}"
+    implementation "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
     kapt "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
+    kapt "com.google.dagger:dagger-android-processor:${DAGGER_VERSION}"
     compileOnly 'javax.annotation:jsr250-api:1.0'
 
     implementation 'commons-codec:commons-codec:1.10'
