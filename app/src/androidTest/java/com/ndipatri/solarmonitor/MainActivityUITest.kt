@@ -59,6 +59,7 @@ class MainActivityUITest {
     fun setUp() {
         // Context of the app under test.
         solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
+        solarMonitorApp.shouldCheckForHardwarePermissions = false
 
         // We can bootstrap the target application with a UITestObjectGraph(Dagger) which will
         // inject mock ViewModels so the only real code is the UI component under test

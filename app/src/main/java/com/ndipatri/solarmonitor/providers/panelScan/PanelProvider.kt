@@ -27,7 +27,7 @@ open class PanelProvider(var context: Context) {
         SolarMonitorApp.instance.objectGraph.inject(this)
     }
 
-    val idlingResource = CustomIdlingResource()
+    open val idlingResource = CustomIdlingResource("panelProviderResource")
 
     val panelDao = AppDatabase.getInstance(context).scannedPanelDao()
 

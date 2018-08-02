@@ -14,7 +14,8 @@ import io.reactivex.schedulers.Schedulers
 
 open class CustomerProvider(var context: Context) {
 
-    val idlingResource = CustomIdlingResource()
+    val idlingResource = CustomIdlingResource("customerProviderResource")
+
     val customerDao = AppDatabase.getInstance(context).customerDao()
 
     fun lookupCustomer(panelId: String): Single<Customer> {

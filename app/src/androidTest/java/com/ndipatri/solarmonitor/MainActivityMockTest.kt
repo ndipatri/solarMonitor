@@ -55,30 +55,35 @@ class MainActivityMockTest {
 
     lateinit var solarMonitorApp: SolarMonitorApp
 
+    lateinit var mockPanelDesc: String
+    lateinit var mockPanelId: String
+
     @Before
     @Throws(Exception::class)
     fun setUp() {
         // Context of the app under test.
         solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
+        solarMonitorApp.shouldCheckForHardwarePermissions = false
 
+        // With this ObjectGraph, we mock our hardware dependency. (e.g. bluetooth)
         val mockTestObjectGraph = MockTestObjectGraph.Initializer.init(solarMonitorApp)
         solarMonitorApp.objectGraph = mockTestObjectGraph
         mockTestObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        IdlingRegistry.getInstance().register((panelProvider.idlingResource))
         IdlingRegistry.getInstance().register((customerProvider.idlingResource))
 
         clearState()
 
         // Now that the hardware layer has been mocked, configure it...
-        val mockPanelDesc = "nicks panel"
-        val mockPanelId = "998877"
+        mockPanelDesc = "nicks panel"
+        mockPanelId = "998877"
         configureMockHardware(mockPanelDesc, mockPanelId)
 
-        // Configure MockWebServer to provide mock RESTful endpoint
-        val mockSolarOutput = 123.0
-        val mockLifetimeOutput = 456.0
+        // Configure MockWebServer to provide mock RESTful endpoint, thus mocking our
+        // other external dependency
+        val mockSolarOutput = 1230.0
+        val mockLifetimeOutput = 4560.0
         configureMockEndpoint(mockSolarOutput, mockLifetimeOutput, mockPanelId, solarOutputProvider!!.apiKey)
     }
 
@@ -105,10 +110,10 @@ class MainActivityMockTest {
         activityRule.launchActivity(Intent())
 
         // we know what panelId our real beacon is emitting.
-        assertFindingPanelViews("480557")
+        assertFindingPanelViews(mockPanelId)
 
         // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews(null, null, "480557")
+        assertLoadingSolarOutputViews("Current (\$0.17/hour), Lifetime(\$0.62)", mockPanelId)
     }
 
     @Throws(MalformedURLException::class)
@@ -143,40 +148,5 @@ class MainActivityMockTest {
 
             subscriber.onSuccess(panelInfo)
         })
-    }
-
-    private fun assertFindingPanelViews(expectedPanelId: String) {
-        onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()))
-
-        // NJD TODO - first one fails.. don't know why
-        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
-
-        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
-
-        // No need to wait for real hardware to scan for panel.. because our test thread is
-        // blocked on app's background thread
-
-        onView(withText("Click to load solar output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel ($expectedPanelId)")))
-    }
-
-    private fun assertLoadingSolarOutputViews(expectedSolarOutput: Double?, expectedLifetimeOutput: Double?, expectedPanelId: String) {
-
-        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
-
-        // No need to wait for real hardware to scan for panel.. because our test thread is
-        // blocked on app's background thread
-
-        Thread.sleep(5000)
-
-        onView(withId(R.id.loadFAB)).check(matches(isDisplayed())).perform(click())
-
-        // No need to wait for real network call to get solar output.. because our test thread is
-        // blocked on app's background thread
-
-        val expectedSolarOutputStringMatcher = if (expectedSolarOutput == null) endsWith("wattHours.") else `is`("current: $expectedSolarOutput watts, lifetime: $expectedLifetimeOutput wattHours.")
-
-        onView(withText(expectedSolarOutputStringMatcher))
-                .check(matches(isDisplayed()))
-                .check(isAbove(withText("solar panel ($expectedPanelId)")))
     }
 }

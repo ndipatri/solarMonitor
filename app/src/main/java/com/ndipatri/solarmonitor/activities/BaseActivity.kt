@@ -5,9 +5,14 @@ import android.view.Menu
 import android.view.MenuItem
 import com.ndipatri.iot.googleproximity.activities.RequirementsActivity
 import com.ndipatri.solarmonitor.R
+import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.fragments.ConfigDialogFragment
 
 open class BaseActivity : RequirementsActivity() {
+
+    override fun shouldCheckPermissionsOnResume(): Boolean {
+        return SolarMonitorApp.instance.shouldCheckForHardwarePermissions
+    }
 
     //region menuSetup
     override fun onCreateOptionsMenu(menu: Menu): Boolean {

@@ -3,16 +3,16 @@ package com.ndipatri.solarmonitor.providers
 import android.support.test.espresso.IdlingResource
 import android.util.Log
 
-open class CustomIdlingResource : IdlingResource {
+open class CustomIdlingResource(var resourceName: String) : IdlingResource {
+
+    override fun getName(): String {
+        return resourceName
+    }
 
     @Volatile
     private var resourceCallback: IdlingResource.ResourceCallback? = null
 
     private var isIdle = IS_IDLE
-
-    override fun getName(): String {
-        return this.javaClass.getName()
-    }
 
     override fun isIdleNow(): Boolean {
         return isIdle

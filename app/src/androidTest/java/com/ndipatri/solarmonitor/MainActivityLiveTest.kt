@@ -65,8 +65,7 @@ class MainActivityLiveTest {
         lifeTestObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        IdlingRegistry.getInstance().register((panelProvider.idlingResource))
-        IdlingRegistry.getInstance().register((customerProvider.idlingResource))
+        IdlingRegistry.getInstance().register(customerProvider.idlingResource, panelProvider.idlingResource)
 
         clearState()
     }
@@ -96,41 +95,6 @@ class MainActivityLiveTest {
         assertFindingPanelViews("480557")
 
         // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews(null, null, "480557")
-    }
-
-    private fun assertFindingPanelViews(expectedPanelId: String) {
-        onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()))
-
-        // NJD TODO - first one fails.. don't know why
-        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
-
-        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
-
-        // No need to wait for real hardware to scan for panel.. because our test thread is
-        // blocked on app's background thread
-
-        onView(withText("Click to load solar output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel ($expectedPanelId)")))
-    }
-
-    private fun assertLoadingSolarOutputViews(expectedSolarOutput: Double?, expectedLifetimeOutput: Double?, expectedPanelId: String) {
-
-        onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
-
-        // No need to wait for real hardware to scan for panel.. because our test thread is
-        // blocked on app's background thread
-
-        Thread.sleep(5000)
-
-        onView(withId(R.id.loadFAB)).check(matches(isDisplayed())).perform(click())
-
-        // No need to wait for real network call to get solar output.. because our test thread is
-        // blocked on app's background thread
-
-        val expectedSolarOutputStringMatcher = if (expectedSolarOutput == null) endsWith("wattHours.") else `is`("current: $expectedSolarOutput watts, lifetime: $expectedLifetimeOutput wattHours.")
-
-        onView(withText(expectedSolarOutputStringMatcher))
-                .check(matches(isDisplayed()))
-                .check(isAbove(withText("solar panel ($expectedPanelId)")))
+        //assertLoadingSolarOutputViews("Current (\$0.17/hour), Lifetime(\$0.62)", "480557")
     }
 }

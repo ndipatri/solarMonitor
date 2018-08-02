@@ -97,7 +97,7 @@ class MainActivity : BaseActivity() {
                     mainTextView.show().text = getString(R.string.loading_solar_output)
                     detailTextView.show()
 
-                    detailTextView.text = "solar panel ${viewModel.scannedPanel.value!!.id}"
+                    detailTextView.text = "solar panel (${viewModel.scannedPanel.value!!.id})"
                     refreshProgressBar.show()
 
                     scanFAB._hide()
@@ -109,7 +109,7 @@ class MainActivity : BaseActivity() {
 
                     mainTextView.show().text = viewModel.powerOutputMessage.value
 
-                    detailTextView.text = "solar panel ${viewModel.scannedPanel.value!!.id}"
+                    detailTextView.text = "solar panel (${viewModel.scannedPanel.value!!.id})"
 
                     refreshProgressBar.gone()
 
