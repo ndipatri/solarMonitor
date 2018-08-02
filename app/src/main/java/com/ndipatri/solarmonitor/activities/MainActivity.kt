@@ -6,11 +6,19 @@ import android.os.Bundle
 import android.support.v7.widget.Toolbar
 import com.ndipatri.solarmonitor.*
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel.USER_STATE.*
+import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import javax.inject.Inject
 
 class MainActivity : BaseActivity() {
 
+    init {
+        SolarMonitorApp.instance.objectGraph.inject(this)
+    }
+
+    @Inject
+    lateinit var viewModelFactory: MainActivityViewModelFactory
     lateinit var viewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,7 +26,7 @@ class MainActivity : BaseActivity() {
 
         // This manages all Activity state.. both storage of state and transitions from one state
         // to another
-        viewModel = ViewModelProviders.of(this).get(MainActivityViewModel::class.java)
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(MainActivityViewModel::class.java)
 
         setContentView(R.layout.activity_main)
 

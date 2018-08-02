@@ -36,4 +36,7 @@ interface PanelDao {
 
     @Query("delete from Panel where id = :panelId")
     fun deletePanel(panelId: String): Int
+
+    @Query("delete from Panel")
+    fun deleteAllPanels(): Int
 }

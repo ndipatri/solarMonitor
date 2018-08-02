@@ -1,4 +1,4 @@
-package com.ndipatri.solarmonitor
+package com.ndipatri.solarmonitor.utils
 
 import android.os.AsyncTask
 

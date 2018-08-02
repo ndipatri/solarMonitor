@@ -2,17 +2,16 @@ package com.ndipatri.solarmonitor
 
 import android.content.Intent
 import android.support.test.InstrumentationRegistry.getInstrumentation
-import android.support.test.espresso.Espresso
 import android.support.test.espresso.Espresso.onView
+import android.support.test.espresso.IdlingRegistry
 import android.support.test.espresso.action.ViewActions.click
 import android.support.test.espresso.assertion.PositionAssertions.isAbove
 import android.support.test.espresso.assertion.ViewAssertions.matches
 import android.support.test.espresso.matcher.ViewMatchers.*
 import android.support.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
-import com.ndipatri.solarmonitor.container.MockObjectGraph
-import com.ndipatri.solarmonitor.container.TestObjectGraph
-import com.ndipatri.solarmonitor.mocks.MockSolarOutputServer
+import com.ndipatri.solarmonitor.container.MockTestObjectGraph
+import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
@@ -20,6 +19,8 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPowe
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
+import com.ndipatri.solarmonitor.utils.AsyncTaskSchedulerRule
+import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
 import io.reactivex.Maybe
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.endsWith
@@ -30,7 +31,7 @@ import org.mockito.Mockito.`when`
 import java.net.MalformedURLException
 import javax.inject.Inject
 
-class MainActivityInstrumentationTest {
+class MainActivityMockTest {
 
     @Rule
     @JvmField
@@ -49,56 +50,42 @@ class MainActivityInstrumentationTest {
     @Inject
     lateinit var panelProvider: PanelProvider
 
+    @Inject
+    lateinit var customerProvider: CustomerProvider
+
+    lateinit var solarMonitorApp: SolarMonitorApp
+
     @Before
     @Throws(Exception::class)
     fun setUp() {
         // Context of the app under test.
-        val solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
+        solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
 
-        // clear out any remaining state.
-        solarMonitorApp.solarCustomerId.delete()
-    }
-
-    // Live Testing
-    //
-    // Here we use our production ObjectGraph with our real service and hardware layer.  This service
-    // layer requires remote RESTful endpoints.  The hardware layer requires a real Bluetooth
-    // stack to be present.
-    //
-    // Pros - no configuration, allows for automated 'live testing' and testing use real live system and data
-    // Cons - live endpoint and hardware need to be in a known state.  If a test fails, your scope is so large
-    // it doesn't really tell you much, necessarily, about your code itself.
-    @Test
-    @Throws(Exception::class)
-    fun findingPanel_realExternalCollaborators() {
-
-        // Context of the app under test.
-        val solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
-
-        // We bootstrap the production ObjectGraph and inject it into this test class so we can access
-        // production components
-        val testObjectGraph = TestObjectGraph.Initializer.init(solarMonitorApp)
-        solarMonitorApp.objectGraph = testObjectGraph
-        testObjectGraph.inject(this)
+        val mockTestObjectGraph = MockTestObjectGraph.Initializer.init(solarMonitorApp)
+        solarMonitorApp.objectGraph = mockTestObjectGraph
+        mockTestObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        val idlingResource = panelProvider.idlingResource
-        Espresso.registerIdlingResources(idlingResource)
+        IdlingRegistry.getInstance().register((panelProvider.idlingResource))
+        IdlingRegistry.getInstance().register((customerProvider.idlingResource))
 
-        activityRule.launchActivity(Intent())
+        clearState()
 
-        // we know what panelId our real beacon is emitting.
-        assertFindingPanelViews("480557")
+        // Now that the hardware layer has been mocked, configure it...
+        val mockPanelDesc = "nicks panel"
+        val mockPanelId = "998877"
+        configureMockHardware(mockPanelDesc, mockPanelId)
+
+        // Configure MockWebServer to provide mock RESTful endpoint
+        val mockSolarOutput = 123.0
+        val mockLifetimeOutput = 456.0
+        configureMockEndpoint(mockSolarOutput, mockLifetimeOutput, mockPanelId, solarOutputProvider!!.apiKey)
     }
 
-    @Test
-    @Throws(Exception::class)
-    fun loadingSolarOutput_realExternalCollaborators() {
-
-        activityRule.launchActivity(Intent())
-
-        // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews(null, null, "480557")
+    private fun clearState() {
+        // clear out any remaining state.
+        panelProvider.deleteAllPanels()
+        customerProvider.deleteAllCustomers()
     }
 
     // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out
@@ -113,36 +100,15 @@ class MainActivityInstrumentationTest {
     // much faster way to test front-end components.
     @Test
     @Throws(Exception::class)
-    fun loadingSolarOutput_mockExternalCollaborators() {
-
-        // Context of the app under test.
-        val solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
-
-        // We can bootstrap the target application with a MockObjectGraph(Dagger) which will use real service
-        // layer but a mock hardware layer.
-        val mockObjectGraph = MockObjectGraph.Initializer.init(solarMonitorApp)
-        solarMonitorApp.objectGraph = mockObjectGraph
-        mockObjectGraph.inject(this)
-
-        // Now that the hardware layer has been mocked, configure it...
-        val mockPanelDesc = "nicks panel"
-        val mockPanelId = "998877"
-        configureMockHardware(mockPanelDesc, mockPanelId)
-
-        // Configure MockWebServer to provide mock RESTful endpoint
-        val mockSolarOutput = 123.0
-        val mockLifetimeOutput = 456.0
-        configureMockEndpoint(mockSolarOutput, mockLifetimeOutput, mockPanelId, solarOutputProvider!!.apiKey)
+    fun scanningAndLoading() {
 
         activityRule.launchActivity(Intent())
 
-        /**
-         * Ok, now to actually do some testing!
-         */
+        // we know what panelId our real beacon is emitting.
+        assertFindingPanelViews("480557")
 
-        // We know the panelId our mock hardware beacon is emitting, and we know the
-        // output that will be returned from our mocked RESTful endpoint.
-        assertLoadingSolarOutputViews(mockSolarOutput, mockLifetimeOutput, mockPanelId)
+        // we cannot predict the real solar output right now.
+        assertLoadingSolarOutputViews(null, null, "480557")
     }
 
     @Throws(MalformedURLException::class)
@@ -171,8 +137,9 @@ class MainActivityInstrumentationTest {
     }
 
     private fun configureMockHardware(desiredPanelDesc: String, desiredPanelId: String) {
+
         `when`(panelProvider.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
-            val panelInfo = Panel(desiredPanelDesc, desiredPanelId)
+            val panelInfo = Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")
 
             subscriber.onSuccess(panelInfo)
         })
@@ -198,6 +165,8 @@ class MainActivityInstrumentationTest {
 
         // No need to wait for real hardware to scan for panel.. because our test thread is
         // blocked on app's background thread
+
+        Thread.sleep(5000)
 
         onView(withId(R.id.loadFAB)).check(matches(isDisplayed())).perform(click())
 

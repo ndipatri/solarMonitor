@@ -54,7 +54,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
         LOADED
     } // user is viewing loaded solar output
 
-    fun scanForNearbyPanel() {
+    open fun scanForNearbyPanel() {
 
         userState.value = USER_STATE.SCANNING
 
@@ -91,7 +91,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
         })
     }
 
-    fun loadSolarOutput() {
+    open fun loadSolarOutput() {
         scannedPanel.value?.apply {
 
             userState.setValue(USER_STATE.LOADING)

@@ -1,4 +1,4 @@
-package com.ndipatri.solarmonitor.mocks
+package com.ndipatri.solarmonitor.utils
 
 import com.google.gson.Gson
 

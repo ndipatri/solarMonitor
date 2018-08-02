@@ -185,6 +185,12 @@ open class PanelProvider(var context: Context) {
         }
     }
 
+    open fun deleteAllPanels(): Completable {
+        return Completable.create(){ subscriber ->
+            panelDao.deleteAllPanels()?.let { subscriber.onComplete() }
+        }
+    }
+
     companion object {
 
         private val TAG = PanelProvider::class.java!!.getSimpleName()

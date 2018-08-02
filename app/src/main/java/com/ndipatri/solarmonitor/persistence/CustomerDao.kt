@@ -38,4 +38,7 @@ interface CustomerDao {
             "INNER JOIN Panel ON Panel.customerId = Customer.id " +
             "WHERE Panel.id = :panelId LIMIT 1")
     fun getCustomerByPanelId(panelId: String): Customer?
+
+    @Query("delete from Customer")
+    fun deleteAllCustomers(): Int
 }

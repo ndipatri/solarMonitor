@@ -5,6 +5,7 @@ import android.content.Context
 import com.ndipatri.solarmonitor.persistence.AppDatabase
 import com.ndipatri.solarmonitor.providers.CustomIdlingResource
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
+import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
@@ -43,6 +44,12 @@ open class CustomerProvider(var context: Context) {
     open fun getCustomer(panelId: String): Maybe<Customer> {
         return Maybe.create { subscriber ->
             customerDao.getCustomerByPanelId(panelId)?.let { subscriber.onSuccess(it) } ?: let { subscriber.onComplete() }
+        }
+    }
+
+    open fun deleteAllCustomers(): Completable {
+        return Completable.create(){ subscriber ->
+            customerDao.deleteAllCustomers()?.let { subscriber.onComplete() }
         }
     }
 

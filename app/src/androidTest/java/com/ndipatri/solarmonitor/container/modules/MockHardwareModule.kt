@@ -1,4 +1,4 @@
-package com.ndipatri.solarmonitor.container
+package com.ndipatri.solarmonitor.container.modules
 
 import android.content.Context
 
