@@ -14,6 +14,10 @@ import io.reactivex.disposables.Disposable
 import java.util.regex.Pattern
 import javax.inject.Inject
 
+/**
+ * Notice this class imports nothing from 'android.widget': it implies no view technology
+ */
+
 open class ConfigDialogFragmentViewModel(context: Application) : AndroidViewModel(context) {
 
     init {

@@ -23,6 +23,5 @@ class SolarMonitorApp : Application() {
 
     companion object {
         lateinit var instance: SolarMonitorApp
-            private set
     }
 }

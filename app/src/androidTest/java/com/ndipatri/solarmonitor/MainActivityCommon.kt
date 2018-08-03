@@ -9,7 +9,7 @@ import android.support.test.espresso.matcher.ViewMatchers.*
 fun assertFindingPanelViews(expectedPanelId: String) {
     onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()))
 
-    // NJD TODO - first one fails.. don't know why
+    // NJD TODO - first one fails.. don't know why.. not bug in test, but bug in app code
     onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
 
     onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())

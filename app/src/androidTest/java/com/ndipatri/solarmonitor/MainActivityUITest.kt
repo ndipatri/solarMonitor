@@ -7,6 +7,7 @@ import android.support.test.espresso.Espresso.onView
 import android.support.test.espresso.action.ViewActions.click
 import android.support.test.espresso.assertion.PositionAssertions.isAbove
 import android.support.test.espresso.assertion.ViewAssertions.matches
+import android.support.test.espresso.matcher.RootMatchers.withDecorView
 import android.support.test.espresso.matcher.ViewMatchers.*
 import android.support.test.rule.ActivityTestRule
 import android.view.View
@@ -69,6 +70,8 @@ class MainActivityUITest {
 
         mockViewModel = (viewModelFactory as MockMainActivityViewModelFactory).mockMainActivityViewModel
         mockViewModel.userState = MutableLiveData<MainActivityViewModel.USER_STATE>().also { it.postValue(MainActivityViewModel.USER_STATE.IDLE) }
+
+        mockViewModel.userMessage = MutableLiveData()
     }
 
     @Test
@@ -106,4 +109,16 @@ class MainActivityUITest {
     }
 
     // NJD TODO - need to cover remaining states...
+
+
+    @Test
+    @Throws(Exception::class)
+    fun userMessage() {
+
+        activityRule.launchActivity(Intent())
+
+        mockViewModel.userMessage.postValue("hi this is a message")
+
+        onView(withText("hi this is a message")).inRoot(withDecorView(not<View>(`is`<View>(activityRule.activity.getWindow().getDecorView())))).check(matches(isDisplayed()))
+    }
 }

@@ -1,9 +1,11 @@
 package com.ndipatri.solarmonitor.activities
 
+import android.app.Application
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.widget.Toolbar
+import android.widget.Toast
 import com.ndipatri.solarmonitor.*
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel.USER_STATE.*
 import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
@@ -41,6 +43,9 @@ class MainActivity : BaseActivity() {
 
         // This is how this activity responds to these state changes
         subscribeToUserState()
+
+        // This is how the activity responds to user feedback from business logic
+        subscribeToUserMessages()
     }
 
     private fun subscribeToUserState() {
@@ -83,7 +88,7 @@ class MainActivity : BaseActivity() {
                 LOAD -> {
                     mainTextView.show().text = getString(R.string.click_to_load_solar_output)
 
-                    detailTextView.text = "solar panel (${viewModel.scannedPanel.value!!.id})"
+                    detailTextView.text = "solar panel (${viewModel.scannedPanel!!.id})"
                     detailTextView.show()
 
                     refreshProgressBar.gone()
@@ -97,7 +102,7 @@ class MainActivity : BaseActivity() {
                     mainTextView.show().text = getString(R.string.loading_solar_output)
                     detailTextView.show()
 
-                    detailTextView.text = "solar panel (${viewModel.scannedPanel.value!!.id})"
+                    detailTextView.text = "solar panel (${viewModel.scannedPanel!!.id})"
                     refreshProgressBar.show()
 
                     scanFAB._hide()
@@ -109,7 +114,7 @@ class MainActivity : BaseActivity() {
 
                     mainTextView.show().text = viewModel.powerOutputMessage.value
 
-                    detailTextView.text = "solar panel (${viewModel.scannedPanel.value!!.id})"
+                    detailTextView.text = "solar panel (${viewModel.scannedPanel!!.id})"
 
                     refreshProgressBar.gone()
 
@@ -118,6 +123,12 @@ class MainActivity : BaseActivity() {
                     configureFAB._hide()
                 }
             }
+        })
+    }
+
+    private fun subscribeToUserMessages() {
+        viewModel.userMessage.observe(this, Observer<String> {
+            Toast.makeText(this@MainActivity.applicationContext, it, Toast.LENGTH_SHORT).show()
         })
     }
 

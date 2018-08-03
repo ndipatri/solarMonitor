@@ -14,7 +14,7 @@ allprojects {
         currentGradleVersion = "4.3"
         currentBuildToolsVersion = "27.0.3"
         currentSupportLibVersion = "27.0.2"
-        currentArchLifecycleVersion = "1.0.0"
+        currentArchLifecycleVersion = "1.1.1"
         currentCompileSdkVersion = 26
         currentMinSdkVersion = 26
         currentTargetSdkVersion = 25

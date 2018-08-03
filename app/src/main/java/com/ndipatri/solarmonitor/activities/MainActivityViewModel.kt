@@ -4,7 +4,6 @@ import android.app.Application
 import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.MutableLiveData
 import android.util.Log
-import android.widget.Toast
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.providers.customer.Customer
@@ -20,7 +19,16 @@ import io.reactivex.functions.BiFunction
 import java.text.NumberFormat
 import javax.inject.Inject
 
+/**
+ * Notice this class imports nothing from 'android.widget': it implies no view technology
+ */
+
 open class MainActivityViewModel(context: Application) : AndroidViewModel(context) {
+
+    var userState = MutableLiveData<USER_STATE>().also { it.setValue(USER_STATE.IDLE) }
+    var scannedPanel: Panel? = null
+    var powerOutputMessage = MutableLiveData<String>()
+    var userMessage = MutableLiveData<String>()
 
     init {
         SolarMonitorApp.instance.objectGraph.inject(this)
@@ -34,14 +42,6 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
     @Inject
     lateinit var customProvider: CustomerProvider
-
-
-    var userState = MutableLiveData<USER_STATE>().also { it.setValue(USER_STATE.IDLE) }
-
-    // NJD TODO - doesn't need to be LiveData
-    var scannedPanel = MutableLiveData<Panel>()
-
-    var powerOutputMessage = MutableLiveData<String>()
 
     private var disposable: Disposable? = null
 
@@ -64,7 +64,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
             }
 
             override fun onSuccess(scannedPanel: Panel) {
-                this@MainActivityViewModel.scannedPanel.value = scannedPanel
+                this@MainActivityViewModel.scannedPanel = scannedPanel
 
                 if (scannedPanel.id?.length == 6) {
                     Log.d(TAG, "Panel found with id configured ${scannedPanel.id}.")
@@ -78,13 +78,13 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
             }
 
             override fun onError(e: Throwable) {
-                Toast.makeText(this@MainActivityViewModel.getApplication(), this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show()
+                userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
 
                 resetToSteadyState()
             }
 
             override fun onComplete() {
-                Toast.makeText(this@MainActivityViewModel.getApplication(), this@MainActivityViewModel.getApplication<Application>().getString(R.string.no_nearby_panels_were_found), Toast.LENGTH_SHORT).show()
+                userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.no_nearby_panels_were_found)
 
                 resetToSteadyState()
             }
@@ -92,7 +92,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     }
 
     open fun loadSolarOutput() {
-        scannedPanel.value?.apply {
+        scannedPanel?.apply {
 
             userState.setValue(USER_STATE.LOADING)
 
@@ -126,7 +126,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                         }
 
                         override fun onError(e: Throwable?) {
-                            Toast.makeText(this@MainActivityViewModel.getApplication(), this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again), Toast.LENGTH_SHORT).show()
+                            userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
 
                             resetToSteadyState()
                         }
@@ -146,7 +146,9 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
                 // For now, we pretend we scanned for the stored panel. The user
                 // can scan for new panels as they wish
-                this@MainActivityViewModel.scannedPanel.value = storedPanel
+                this@MainActivityViewModel.scannedPanel = storedPanel
+
+                userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.using_stored_panel)
                 userState.value = USER_STATE.LOAD
             }
 

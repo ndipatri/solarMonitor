@@ -4,12 +4,16 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.support.test.espresso.Root;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 import android.widget.ImageView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class Matchers {
 
