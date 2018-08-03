@@ -6,6 +6,8 @@ import android.support.test.espresso.assertion.PositionAssertions.isAbove
 import android.support.test.espresso.assertion.ViewAssertions.matches
 import android.support.test.espresso.matcher.ViewMatchers.*
 
+// The actual test assertions are common across Live and Mock testing
+// scenarios
 fun assertFindingPanelViews(expectedPanelId: String) {
     onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()))
 

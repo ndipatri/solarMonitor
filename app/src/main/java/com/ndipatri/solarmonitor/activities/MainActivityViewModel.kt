@@ -41,7 +41,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     lateinit var panelProvider: PanelProvider
 
     @Inject
-    lateinit var customProvider: CustomerProvider
+    lateinit var customerProvider: CustomerProvider
 
     private var disposable: Disposable? = null
 
@@ -97,7 +97,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
             userState.setValue(USER_STATE.LOADING)
 
             solarOutputProvider.getSolarOutput(this.id)
-                    .zipWith(customProvider.lookupCustomer(this.id),
+                    .zipWith(customerProvider.lookupCustomer(this.id),
                             BiFunction<PowerOutput, Customer, String> { powerOutput: PowerOutput, customer: Customer ->
 
                                 val currencyFormat = NumberFormat.getCurrencyInstance()

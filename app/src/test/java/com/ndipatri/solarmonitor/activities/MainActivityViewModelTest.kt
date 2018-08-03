@@ -5,14 +5,20 @@ import android.arch.lifecycle.Observer
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.container.ObjectGraph
+import com.ndipatri.solarmonitor.providers.customer.Customer
+import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
+import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
+import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import io.reactivex.Maybe
+import io.reactivex.Single
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
@@ -41,7 +47,16 @@ class MainActivityViewModelTest {
     private lateinit var mockUserMessageObserver: Observer<String>
 
     @Mock
+    private lateinit var mockPowerOutputMessage: Observer<String>
+
+    @Mock
     private lateinit var mockPanelProvider: PanelProvider
+
+    @Mock
+    private lateinit var mockCustomerProvider: CustomerProvider
+
+    @Mock
+    private lateinit var mockSolarOutputProvider: SolarOutputProvider
 
     @Before
     fun setup() {
@@ -54,16 +69,19 @@ class MainActivityViewModelTest {
         viewModel = MainActivityViewModel(mockContext)
 
         viewModel.panelProvider = mockPanelProvider
+        viewModel.solarOutputProvider = mockSolarOutputProvider
+        viewModel.customerProvider = mockCustomerProvider
 
         viewModel.userState.observeForever(mockUserStateObserver)
         viewModel.userMessage.observeForever(mockUserMessageObserver)
+        viewModel.powerOutputMessage.observeForever(mockPowerOutputMessage)
     }
 
     @Test
     fun idleState() {
 
         // Confirm that the steady state is IDLE
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.IDLE)
+        assertEquals(MainActivityViewModel.USER_STATE.IDLE, viewModel.userState.value)
 
         // Confirm that as soon as this state is observed, it is delivered IDLE
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.IDLE)
@@ -75,7 +93,7 @@ class MainActivityViewModelTest {
 
         viewModel.scanForNearbyPanel()
 
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.SCANNING)
+        assertEquals(MainActivityViewModel.USER_STATE.SCANNING, viewModel.userState.value)
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.SCANNING)
     }
 
@@ -89,7 +107,7 @@ class MainActivityViewModelTest {
 
         viewModel.scanForNearbyPanel()
 
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.LOAD)
+        assertEquals(MainActivityViewModel.USER_STATE.LOAD, viewModel.userState.value)
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.LOAD)
     }
 
@@ -103,7 +121,7 @@ class MainActivityViewModelTest {
 
         viewModel.scanForNearbyPanel()
 
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.CONFIGURE)
+        assertEquals(MainActivityViewModel.USER_STATE.CONFIGURE, viewModel.userState.value)
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.CONFIGURE)
     }
 
@@ -133,7 +151,7 @@ class MainActivityViewModelTest {
         verify(mockUserMessageObserver).onChanged("second test message")
 
         // Since no panel was found, but a stored one was ...
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.LOAD)
+        assertEquals(MainActivityViewModel.USER_STATE.LOAD, viewModel.userState.value)
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.LOAD)
     }
 
@@ -161,7 +179,7 @@ class MainActivityViewModelTest {
         verify(mockUserMessageObserver).onChanged("test message")
 
         // Since no panel was found and no stored panel exists
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.IDLE)
+        assertEquals(MainActivityViewModel.USER_STATE.IDLE, viewModel.userState.value)
         verify(mockUserStateObserver, times(2)).onChanged(MainActivityViewModel.USER_STATE.IDLE)
     }
 
@@ -187,11 +205,77 @@ class MainActivityViewModelTest {
         verify(mockUserMessageObserver).onChanged("test message")
 
         // Since no panel was found and no stored panel exists
-        assertEquals(viewModel.userState.value, MainActivityViewModel.USER_STATE.IDLE)
+        assertEquals(MainActivityViewModel.USER_STATE.IDLE, viewModel.userState.value)
         verify(mockUserStateObserver, times(2)).onChanged(MainActivityViewModel.USER_STATE.IDLE)
     }
 
-    // NJD TODO - need to complete testing 'loading' code
+    @Test
+    fun loadingState_waitingForScanResults() {
+        // we'll assume this was done in previous step
+        var scannedPanel = Panel("123")
+        viewModel.scannedPanel = scannedPanel
 
+        `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
+        `when`(mockCustomerProvider.lookupCustomer(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
+
+        viewModel.loadSolarOutput()
+
+        assertEquals(MainActivityViewModel.USER_STATE.LOADING, viewModel.userState.value)
+        verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.LOADING)
+    }
+
+    @Test
+    fun loadingState_results_success() {
+        // we'll assume this was done in previous step
+        var scannedPanel = Panel("123")
+        viewModel.scannedPanel = scannedPanel
+
+        `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber ->
+
+            // assume we can receive power output from provider ...
+            subscriber.onSuccess(PowerOutput(1230.0, 4560.0))
+        })
+
+        `when`(mockCustomerProvider.lookupCustomer("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
+
+        viewModel.loadSolarOutput()
+
+        assertEquals(MainActivityViewModel.USER_STATE.LOADED, viewModel.userState.value)
+        verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.LOADED)
+
+
+
+        var expectedPowerOutputMessage = "Current ($0.17/hour), Lifetime($0.62)"
+        assertEquals(expectedPowerOutputMessage, viewModel.powerOutputMessage.value)
+        verify(mockPowerOutputMessage).onChanged(expectedPowerOutputMessage)
+    }
+
+    @Test
+    fun loadingState_results_error() {
+        // we'll assume this was done in previous step
+        var scannedPanel = Panel("123")
+        viewModel.scannedPanel = scannedPanel
+
+        `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber ->
+
+            subscriber.onError(Exception())
+        })
+
+        // upon any failure, we always try to load stored panel ... so make that fail too
+        `when`(mockPanelProvider.getStoredPanel()).thenReturn(Maybe.create {subscriber ->
+
+            subscriber.onError(Exception())
+        })
+
+        `when`(mockCustomerProvider.lookupCustomer("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
+
+        `when`(mockContext.getString(R.string.error_please_try_again)).thenReturn("test message")
+
+        viewModel.loadSolarOutput()
+
+        verify(mockUserMessageObserver).onChanged("test message")
+
+        assertEquals(MainActivityViewModel.USER_STATE.IDLE, viewModel.userState.value)
+        verify(mockUserStateObserver, times(2)).onChanged(MainActivityViewModel.USER_STATE.IDLE)   }
 }
 
