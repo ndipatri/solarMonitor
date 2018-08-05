@@ -2,12 +2,7 @@ package com.ndipatri.solarmonitor
 
 import android.content.Intent
 import android.support.test.InstrumentationRegistry.getInstrumentation
-import android.support.test.espresso.Espresso.onView
 import android.support.test.espresso.IdlingRegistry
-import android.support.test.espresso.action.ViewActions.click
-import android.support.test.espresso.assertion.PositionAssertions.isAbove
-import android.support.test.espresso.assertion.ViewAssertions.matches
-import android.support.test.espresso.matcher.ViewMatchers.*
 import android.support.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockTestObjectGraph
@@ -21,9 +16,8 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeDat
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
 import com.ndipatri.solarmonitor.utils.AsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
+import com.ndipatri.solarmonitor.utils.TaskExecutorWithIdlingResourceRule
 import io.reactivex.Maybe
-import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.endsWith
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +37,10 @@ class MainActivityMockTest {
     @Rule
     @JvmField
     var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
+
+    @Rule
+    @JvmField
+    val executorRule = TaskExecutorWithIdlingResourceRule()
 
     @Inject
     lateinit var solarOutputProvider: SolarOutputProvider
@@ -142,6 +140,10 @@ class MainActivityMockTest {
     }
 
     private fun configureMockHardware(desiredPanelDesc: String, desiredPanelId: String) {
+
+        `when`(panelProvider.getStoredPanel()).thenReturn(Maybe.create { subscriber ->
+            subscriber.onComplete() // no stored panel
+        })
 
         `when`(panelProvider.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
             val panelInfo = Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")

@@ -45,7 +45,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                                         // NDJ TODO - remove following once i get my operators in
                                         // in order in PanelProvider
-                                        .allowMainThreadQueries()
+                                        //.allowMainThreadQueries()
 
                                         .build()
                     }

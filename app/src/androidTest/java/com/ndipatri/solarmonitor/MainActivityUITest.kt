@@ -5,7 +5,6 @@ import android.content.Intent
 import android.support.test.InstrumentationRegistry.getInstrumentation
 import android.support.test.espresso.Espresso.onView
 import android.support.test.espresso.action.ViewActions.click
-import android.support.test.espresso.assertion.PositionAssertions.isAbove
 import android.support.test.espresso.assertion.ViewAssertions.matches
 import android.support.test.espresso.matcher.RootMatchers.withDecorView
 import android.support.test.espresso.matcher.ViewMatchers.*
@@ -14,26 +13,17 @@ import android.view.View
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
-import com.ndipatri.solarmonitor.container.modules.MockMainActivityViewModelFactory
 import com.ndipatri.solarmonitor.container.UITestObjectGraph
-import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
-import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
-import com.ndipatri.solarmonitor.providers.panelScan.Panel
-import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
-import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPower
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
+import com.ndipatri.solarmonitor.container.modules.MockMainActivityViewModelFactory
 import com.ndipatri.solarmonitor.utils.AsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.Matchers.isBitmapTheSame
-import io.reactivex.Maybe
-import org.hamcrest.CoreMatchers.*
+import com.ndipatri.solarmonitor.utils.TaskExecutorWithIdlingResourceRule
+import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
-import java.net.MalformedURLException
 import javax.inject.Inject
 
 class MainActivityUITest {
@@ -48,6 +38,10 @@ class MainActivityUITest {
     @Rule
     @JvmField
     var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
+
+    @Rule
+    @JvmField
+    val executorRule = TaskExecutorWithIdlingResourceRule()
 
     @Inject
     lateinit var viewModelFactory: MainActivityViewModelFactory
@@ -72,6 +66,8 @@ class MainActivityUITest {
         mockViewModel.userState = MutableLiveData<MainActivityViewModel.USER_STATE>().also { it.postValue(MainActivityViewModel.USER_STATE.IDLE) }
 
         mockViewModel.userMessage = MutableLiveData()
+
+        //EspressoTestUtil.disableProgressBarAnimations(activityRule)
     }
 
     @Test

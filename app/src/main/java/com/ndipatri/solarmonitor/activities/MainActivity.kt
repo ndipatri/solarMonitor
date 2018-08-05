@@ -1,6 +1,5 @@
 package com.ndipatri.solarmonitor.activities
 
-import android.app.Application
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
@@ -46,6 +45,12 @@ class MainActivity : BaseActivity() {
 
         // This is how the activity responds to user feedback from business logic
         subscribeToUserMessages()
+
+        initializeUserState()
+    }
+
+    private fun initializeUserState() {
+        viewModel.resetToSteadyState()
     }
 
     private fun subscribeToUserState() {

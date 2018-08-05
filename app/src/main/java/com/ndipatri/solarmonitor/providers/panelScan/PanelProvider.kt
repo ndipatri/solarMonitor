@@ -84,6 +84,8 @@ open class PanelProvider(var context: Context) {
 
                                     var panelId = retrievedAttachment?: NEW_PANEL_ID
 
+                                    // Presumably goes out to cloud to get Customer associated with
+                                    // this Panel.
                                     customerProvider.lookupCustomer(panelId = panelId).subscribe(object: SingleObserver<Customer> {
                                         override fun onSuccess(panelCustomer: Customer) {
 

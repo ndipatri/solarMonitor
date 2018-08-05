@@ -72,6 +72,8 @@ class MainActivityViewModelTest {
         viewModel.solarOutputProvider = mockSolarOutputProvider
         viewModel.customerProvider = mockCustomerProvider
 
+        // 'observerForever' is how you observe LiveData when you don't have a
+        // LifecycleAware object such as an Activity or Fragment.
         viewModel.userState.observeForever(mockUserStateObserver)
         viewModel.userMessage.observeForever(mockUserMessageObserver)
         viewModel.powerOutputMessage.observeForever(mockPowerOutputMessage)
