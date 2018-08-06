@@ -5,6 +5,8 @@ import android.support.test.espresso.action.ViewActions.click
 import android.support.test.espresso.assertion.PositionAssertions.isAbove
 import android.support.test.espresso.assertion.ViewAssertions.matches
 import android.support.test.espresso.matcher.ViewMatchers.*
+import com.ndipatri.solarmonitor.utils.Matchers.isTextMatchingPattern
+import java.util.regex.Pattern
 
 // The actual test assertions are common across Live and Mock testing
 // scenarios
@@ -19,7 +21,7 @@ fun assertFindingPanelViews(expectedPanelId: String) {
     onView(withText("Click to load solar output ...")).check(matches(isDisplayed())).check(isAbove(withText("solar panel ($expectedPanelId)")))
 }
 
-fun assertLoadingSolarOutputViews(expectedOutputMessage: String, expectedPanelId: String) {
+fun assertLoadingSolarOutputViews(expectedOutputPattern: String, expectedPanelId: String) {
 
     onView(withId(R.id.scanFAB)).check(matches(isDisplayed())).perform(click())
 
@@ -31,5 +33,5 @@ fun assertLoadingSolarOutputViews(expectedOutputMessage: String, expectedPanelId
     // No need to wait for real network call to get solar output.. because our test thread is
     // blocked on app's background thread
 
-    onView(withText(expectedOutputMessage)).check(matches(isDisplayed())).check(isAbove(withText("solar panel ($expectedPanelId)")))
+    onView(withId(R.id.mainTextView)).check(matches(isTextMatchingPattern(expectedOutputPattern))).check(matches(isDisplayed())).check(isAbove(withText("solar panel ($expectedPanelId)")))
 }

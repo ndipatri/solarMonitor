@@ -24,6 +24,9 @@ class MainActivityLiveTest {
     // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
     // while the background thread is running in our target application. (only those background
     // operations that are using RxJava's IO and Computation schedulers, that is)
+    //
+    // This is necessary for this test when we are 'loading' solar output using SolarOutputProvider.
+    // This Provider uses RxJava/Retrofit to retrieve solar output from our live RESTful endpoint.
     @Rule
     @JvmField
     var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
@@ -53,6 +56,9 @@ class MainActivityLiveTest {
         lifeTestObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
+        // The PanelProvider actually does BLE scanning in a way that is non-blocking.  Our background
+        // thread subscribes to hotObservable, so we need to wrap in IdlingRegistry.. RxJava thread
+        // trickery isn't enough.
         IdlingRegistry.getInstance().register(customerProvider.idlingResource, panelProvider.idlingResource)
 
         clearState()
@@ -60,8 +66,8 @@ class MainActivityLiveTest {
 
     private fun clearState() {
         // clear out any remaining state.
-        //panelProvider.deleteAllPanels().subscribe()
-        //customerProvider.deleteAllCustomers().subscribe()
+        panelProvider.deleteAllPanels().subscribe()
+        customerProvider.deleteAllCustomers().subscribe()
     }
 
     // Live Testing
@@ -73,16 +79,20 @@ class MainActivityLiveTest {
     // Pros - no configuration, allows for automated 'live testing' and testing use real live system and data
     // Cons - live endpoint and hardware need to be in a known state.  If a test fails, your scope is so large
     // it doesn't really tell you much, necessarily, about your code itself.
+    //
     @Test
     @Throws(Exception::class)
     fun scanningAndLoading() {
 
         activityRule.launchActivity(Intent())
 
+        // For Here we depend solely on the AsyncTaskSchedulerRule because our RxJava background process
+        // is hitting the remote RESTful endpoint. (We don't need IdlingResource)
+
         // we know what panelId our real beacon is emitting.
         assertFindingPanelViews("480557")
 
         // we cannot predict the real solar output right now.
-        //assertLoadingSolarOutputViews("Current (\$0.17/hour), Lifetime(\$0.62)", "480557")
+        assertLoadingSolarOutputViews("Current \\((.*?)/hour\\)\\, Lifetime\\((.*?)\\)", "480557")
     }
 }

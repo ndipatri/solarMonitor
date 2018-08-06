@@ -22,11 +22,10 @@ import android.arch.persistence.room.OnConflictStrategy.IGNORE
 import android.arch.persistence.room.Query
 import com.ndipatri.solarmonitor.providers.customer.Customer
 
+// NJD TODO - For now, this Dao supports a single persisted Customer
+
 @Dao
 interface CustomerDao {
-
-    @Query("select * from Customer")
-    fun getAllCustomers(): List<Customer>
 
     @Insert(onConflict = IGNORE)
     fun insertOrReplaceCustomer(customer: Customer)

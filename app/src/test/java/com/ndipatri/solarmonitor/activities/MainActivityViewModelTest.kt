@@ -218,7 +218,7 @@ class MainActivityViewModelTest {
         viewModel.scannedPanel = scannedPanel
 
         `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
-        `when`(mockCustomerProvider.lookupCustomer(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
+        `when`(mockCustomerProvider.findCustomerForPanel(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
 
         viewModel.loadSolarOutput()
 
@@ -238,7 +238,7 @@ class MainActivityViewModelTest {
             subscriber.onSuccess(PowerOutput(1230.0, 4560.0))
         })
 
-        `when`(mockCustomerProvider.lookupCustomer("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
+        `when`(mockCustomerProvider.findCustomerForPanel("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
 
         viewModel.loadSolarOutput()
 
@@ -269,7 +269,7 @@ class MainActivityViewModelTest {
             subscriber.onError(Exception())
         })
 
-        `when`(mockCustomerProvider.lookupCustomer("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
+        `when`(mockCustomerProvider.findCustomerForPanel("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
 
         `when`(mockContext.getString(R.string.error_please_try_again)).thenReturn("test message")
 

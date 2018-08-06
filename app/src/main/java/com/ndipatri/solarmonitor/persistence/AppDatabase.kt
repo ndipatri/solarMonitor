@@ -38,16 +38,16 @@ abstract class AppDatabase : RoomDatabase() {
             if (INSTANCE == null) {
                 synchronized(AppDatabase::class) {
                     if (INSTANCE == null) {
-                        INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                                                        AppDatabase::class.java,
-                                                        "solar_monitor.db")
-                                        .fallbackToDestructiveMigration()
+                        INSTANCE =
+                            Room.databaseBuilder(context.getApplicationContext(),
+                                                 AppDatabase::class.java,
+                                                 "solar_monitor.db")
+                                                 .fallbackToDestructiveMigration()
 
-                                        // NDJ TODO - remove following once i get my operators in
-                                        // in order in PanelProvider
-                                        //.allowMainThreadQueries()
-
-                                        .build()
+                                                 // NJD TODO - Need this until i fix up the rxJava operator
+                                                 // mess in PanelProvider.
+                                                 //.allowMainThreadQueries()
+                                                 .build()
                     }
                 }
             }

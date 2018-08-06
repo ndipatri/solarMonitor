@@ -8,10 +8,13 @@ import android.support.test.espresso.Root;
 import android.support.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+
+import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -74,5 +77,31 @@ public class Matchers {
         drawable.draw(canvas);
 
         return bitmap;
+    }
+
+    /**
+     * Creates a matcher of {@link TextView}s that matches when an examined TextView
+     * has label that matches the specified pattern.
+     * <pre>
+     * Example:
+     * onView(withId(R.id.imageDown)).check(matches(isTextMatchingPattern("[0-9]")));
+     * </pre>
+     *
+     * @param pattern - expected label pattern
+     * @return Matcher<View> for given pattern
+     */
+    public static Matcher<View> isTextMatchingPattern(final String pattern) {
+        return new BoundedMatcher<View, TextView>(TextView.class) {
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("Text label with regex pattern: ");
+                description.appendText(pattern);
+            }
+
+            @Override
+            public boolean matchesSafely(TextView view) {
+                return Pattern.compile(pattern).matcher(view.getText()).matches();
+            }
+        };
     }
 }

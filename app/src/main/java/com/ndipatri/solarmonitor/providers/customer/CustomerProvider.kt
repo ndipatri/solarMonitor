@@ -18,7 +18,7 @@ open class CustomerProvider(var context: Context) {
 
     val customerDao = AppDatabase.getInstance(context).customerDao()
 
-    fun lookupCustomer(panelId: String): Single<Customer> {
+    fun findCustomerForPanel(panelId: String): Single<Customer> {
 
         return Single.create { subscribe: SingleEmitter<Customer> ->
 
@@ -40,12 +40,6 @@ open class CustomerProvider(var context: Context) {
             idlingResource.updateIdleState(CustomIdlingResource.IS_IDLE)
         }
         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-    }
-
-    open fun getCustomer(panelId: String): Maybe<Customer> {
-        return Maybe.create { subscriber ->
-            customerDao.getCustomerByPanelId(panelId)?.let { subscriber.onSuccess(it) } ?: let { subscriber.onComplete() }
-        }
     }
 
     open fun deleteAllCustomers(): Completable {

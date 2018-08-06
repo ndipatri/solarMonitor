@@ -34,6 +34,9 @@ class MainActivityMockTest {
     // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
     // while the background thread is running in our target application. (only those background
     // operations that are using RxJava's IO and Computation schedulers, that is)
+    //
+    // This is necessary for this test when we are 'loading' solar output using SolarOutputProvider.
+    // This Provider uses RxJava/Retrofit to retrieve solar output from mockWebServer RESTful endpoint.
     @Rule
     @JvmField
     var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
@@ -69,6 +72,8 @@ class MainActivityMockTest {
         mockTestObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.
+        // This is necessary as this provider has an undisclosed background mechanism so we need
+        // to wrap the call in IdlingRegistry code to be safe.
         IdlingRegistry.getInstance().register((customerProvider.idlingResource))
 
         clearState()
@@ -111,7 +116,7 @@ class MainActivityMockTest {
         assertFindingPanelViews(mockPanelId)
 
         // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews("Current (\$0.17/hour), Lifetime(\$0.62)", mockPanelId)
+        assertLoadingSolarOutputViews("Current \\(\\$0\\.17\\/hour\\)\\, Lifetime\\(\\$0\\.62\\)", mockPanelId)
     }
 
     @Throws(MalformedURLException::class)

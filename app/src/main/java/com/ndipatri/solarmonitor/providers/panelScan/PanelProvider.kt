@@ -11,14 +11,12 @@ import com.ndipatri.solarmonitor.persistence.AppDatabase
 import com.ndipatri.solarmonitor.providers.CustomIdlingResource
 import com.ndipatri.solarmonitor.providers.customer.Customer
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
-import io.reactivex.Completable
-import io.reactivex.Maybe
-import io.reactivex.MaybeObserver
-import io.reactivex.SingleObserver
+import io.reactivex.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.MaybeSubject
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 open class PanelProvider(var context: Context) {
@@ -52,6 +50,11 @@ open class PanelProvider(var context: Context) {
 
     open fun scanForNearbyPanel(): Maybe<Panel> {
 
+        // We call an external BLE scanning library which we know eventually returns
+        // an async response on either success or failure... For this reason, we cannot
+        // depend on RxPlugins for test thread synchronization.  So we use IdlingResource
+        // We can safely do this (e.g. we won't hang the test thread) because we know this
+        // library has a timeout eventually.
         idlingResource.updateIdleState(CustomIdlingResource.IS_NOT_IDLE)
 
         scanForNearbyPanelSubject = MaybeSubject.create()
@@ -62,6 +65,7 @@ open class PanelProvider(var context: Context) {
         GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
                 .firstElement() // once is good enough
                 .doFinally { GoogleProximity.getInstance().stopBeaconScanning() }
+                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(object : MaybeObserver<BeaconScanHelper.BeaconUpdate> {
 
                     override fun onSubscribe(d: Disposable) {}
@@ -73,7 +77,12 @@ open class PanelProvider(var context: Context) {
                             Log.d(TAG, "Beacon found.. $beacon'. Retrieving panel info ...")
 
                             // NJD TODO - eek, embedded callback.. must fix!!!!! (notice multiple !'s)
-                            GoogleProximity.getInstance().retrieveAttachment(beacon).subscribe(object : MaybeObserver<Array<String>> {
+                            GoogleProximity.getInstance().retrieveAttachment(beacon)
+                                    // I have to do this becuase i'm doing this horrible callback-hell
+                                    // thing and this onSuccess() really needs to be in the background.
+                                    // ultimately it should be part of a flatMap
+                                    .observeOn(Schedulers.io())
+                                    .subscribe(object : MaybeObserver<Array<String>> {
                                 override fun onSubscribe(d: Disposable) {}
 
                                 override fun onSuccess(attachment: Array<String>) {
@@ -86,11 +95,18 @@ open class PanelProvider(var context: Context) {
 
                                     // Presumably goes out to cloud to get Customer associated with
                                     // this Panel.
-                                    customerProvider.lookupCustomer(panelId = panelId).subscribe(object: SingleObserver<Customer> {
+                                    customerProvider.findCustomerForPanel(panelId = panelId)
+                                            // I have to do this becuase i'm doing this horrible callback-hell
+                                            // thing and this onSuccess() really needs to be in the background.
+                                            // ultimately it should be part of a flatMap
+                                            .observeOn(Schedulers.io())
+                                            .subscribe(object: SingleObserver<Customer> {
                                         override fun onSuccess(panelCustomer: Customer) {
 
                                             var customerPanel = Panel(panelId, panelDescription, panelCustomer.id)
 
+                                            // NJD TODO - normally you cannot do such operations on UI thread
+                                            // but until i fix this callback hell, this needs to be here.
                                             panelDao.insertOrReplacePanel(customerPanel)
 
                                             // scan found configured panel
@@ -183,7 +199,9 @@ open class PanelProvider(var context: Context) {
 
     open fun getStoredPanel(): Maybe<Panel> {
         return Maybe.create { subscriber ->
-            panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: let { subscriber.onComplete() }
+            panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: let {
+                subscriber.onComplete()
+            }
         }
     }
 

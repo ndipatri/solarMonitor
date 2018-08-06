@@ -123,7 +123,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
             userState.setValue(USER_STATE.LOADING)
 
             solarOutputProvider.getSolarOutput(this.id)
-                    .zipWith(customerProvider.lookupCustomer(this.id),
+                    .zipWith(customerProvider.findCustomerForPanel(this.id),
                             BiFunction<PowerOutput, Customer, String> { powerOutput: PowerOutput, customer: Customer ->
 
                                 val currencyFormat = NumberFormat.getCurrencyInstance()
