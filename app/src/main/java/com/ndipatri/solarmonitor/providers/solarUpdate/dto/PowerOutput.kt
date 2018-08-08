@@ -1,5 +1,5 @@
 package com.ndipatri.solarmonitor.providers.solarUpdate.dto
 
 
-class PowerOutput(var currentPowerInWattHours: Double?, var lifetimePowerInWattHours: Double?)
+class PowerOutput(var currentPowerInWatts: Double?, var lifetimePowerInWattHours: Double?)
 

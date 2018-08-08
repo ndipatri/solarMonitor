@@ -129,7 +129,8 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                                 val currencyFormat = NumberFormat.getCurrencyInstance()
 
                                 var currentProduction = "unavailable"
-                                powerOutput.currentPowerInWattHours?.let {
+                                powerOutput.currentPowerInWatts?.let {
+                                    // We'll just assume the production of current output for one hour
                                     currentProduction = currencyFormat.format(it/1000 * customer.dollarsPerkWh)
                                 }
 

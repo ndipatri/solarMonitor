@@ -198,16 +198,20 @@ open class PanelProvider(var context: Context) {
 
 
     open fun getStoredPanel(): Maybe<Panel> {
-        return Maybe.create { subscriber ->
-            panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: let {
-                subscriber.onComplete()
+        return Maybe.create(object: MaybeOnSubscribe<Panel> {
+            override fun subscribe(subscriber: MaybeEmitter<Panel>) {
+                panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: let { subscriber.onComplete() }
             }
-        }
+        })
+        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 
     open fun deleteAllPanels(): Completable {
-        return Completable.create(){ subscriber ->
-            panelDao.deleteAllPanels()?.let { subscriber.onComplete() }
+        return Completable.create { subscriber ->
+            panelDao.deleteAllPanels()
+            subscriber.onComplete()
+        }.also {
+            it.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
         }
     }
 

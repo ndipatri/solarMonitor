@@ -46,6 +46,7 @@ open class CustomerProvider(var context: Context) {
         return Completable.create(){ subscriber ->
             customerDao.deleteAllCustomers()?.let { subscriber.onComplete() }
         }
+        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 
     companion object {

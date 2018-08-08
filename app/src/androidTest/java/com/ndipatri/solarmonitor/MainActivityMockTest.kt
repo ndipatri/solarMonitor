@@ -85,9 +85,9 @@ class MainActivityMockTest {
 
         // Configure MockWebServer to provide mock RESTful endpoint, thus mocking our
         // other external dependency
-        val mockSolarOutput = 1230.0
-        val mockLifetimeOutput = 4560.0
-        configureMockEndpoint(mockSolarOutput, mockLifetimeOutput, mockPanelId, solarOutputProvider!!.apiKey)
+        val mockCurentOutputInkW = 3.2
+        val mockLifetimeOutputInkWh = 7200.0
+        configureMockEndpoint(mockCurentOutputInkW, mockLifetimeOutputInkWh, mockPanelId, solarOutputProvider!!.apiKey)
     }
 
     private fun clearState() {
@@ -116,15 +116,15 @@ class MainActivityMockTest {
         assertFindingPanelViews(mockPanelId)
 
         // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews("Current \\(\\$0\\.17\\/hour\\)\\, Lifetime\\(\\$0\\.62\\)", mockPanelId)
+        assertLoadingSolarOutputViews("Current \\(\\$0\\.44\\/hour\\)\\, Lifetime\\(\\$984\\.31\\)", mockPanelId)
     }
 
     @Throws(MalformedURLException::class)
-    private fun configureMockEndpoint(currentPowerValue: Double?, lifetimeEnergyValue: Double?, solarCustomerId: String, solarApiKey: String) {
+    private fun configureMockEndpoint(currentPowerInkW: Double?, lifetimeEnergyInkWh: Double?, solarCustomerId: String, solarApiKey: String) {
 
         val mockOverview = Overview().apply {
-            currentPower = CurrentPower().apply { power = currentPowerValue }
-            lifeTimeData = LifeTimeData().apply { energy = lifetimeEnergyValue }
+            currentPower = CurrentPower().apply { power = currentPowerInkW?.times(1000) }
+            lifeTimeData = LifeTimeData().apply { energy = lifetimeEnergyInkWh?.times(1000.0) }
         }
 
         val getOverviewResponse = GetOverviewResponse().apply { overview = mockOverview }
