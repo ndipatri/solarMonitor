@@ -89,7 +89,7 @@ class MainActivityUITest {
     fun scanningState() {
 
         `when`(mockViewModel.scanForNearbyPanel()).then {
-            mockViewModel.userState.postValue(MainActivityViewModel.USER_STATE.SCANNING)
+            mockViewModel.userState.setValue(MainActivityViewModel.USER_STATE.SCANNING)
         }
 
         activityRule.launchActivity(Intent())

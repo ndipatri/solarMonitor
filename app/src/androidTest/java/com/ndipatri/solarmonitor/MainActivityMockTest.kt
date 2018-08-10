@@ -116,7 +116,7 @@ class MainActivityMockTest {
         assertFindingPanelViews(mockPanelId)
 
         // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews("Current \\(\\$0\\.44\\/hour\\)\\, Lifetime\\(\\$984\\.31\\)", mockPanelId)
+        assertLoadingSolarOutputViews("Current \\(.0\\.44\\/hour\\)\\, Lifetime\\(.984\\.31\\)", mockPanelId)
     }
 
     @Throws(MalformedURLException::class)
