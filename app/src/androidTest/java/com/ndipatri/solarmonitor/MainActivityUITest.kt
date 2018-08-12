@@ -15,9 +15,9 @@ import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
 import com.ndipatri.solarmonitor.container.UITestObjectGraph
 import com.ndipatri.solarmonitor.container.modules.MockMainActivityViewModelFactory
-import com.ndipatri.solarmonitor.utils.AsyncTaskSchedulerRule
+import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.Matchers.isBitmapTheSame
-import com.ndipatri.solarmonitor.utils.TaskExecutorWithIdlingResourceRule
+import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.not
 import org.junit.Before
@@ -37,11 +37,11 @@ class MainActivityUITest {
     // operations that are using RxJava's IO and Computation schedulers, that is)
     @Rule
     @JvmField
-    var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
+    var asyncTaskSchedulerRule = RxJavaUsesAsyncTaskSchedulerRule()
 
     @Rule
     @JvmField
-    val executorRule = TaskExecutorWithIdlingResourceRule()
+    val executorRule = AACUsesIdlingResourceRule()
 
     @Inject
     lateinit var viewModelFactory: MainActivityViewModelFactory
@@ -52,14 +52,17 @@ class MainActivityUITest {
     @Before
     @Throws(Exception::class)
     fun setUp() {
-        // Context of the app under test.
+        // Here Espresso lets us access target application
         solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
         solarMonitorApp.shouldCheckForHardwarePermissions = false
 
-        // We can bootstrap the target application with a UITestObjectGraph(Dagger) which will
-        // inject mock ViewModels so the only real code is the UI component under test
+        // With this 'UI' ObjectGraph, we inject a mock ViewMode, keeping everything else intact
+        // so we can test using a real MainActivity class.
         val uiTestObjectGraph = UITestObjectGraph.Initializer.init(solarMonitorApp)
         solarMonitorApp.objectGraph = uiTestObjectGraph
+
+        // Here we give this test class access to the same ObjectGraph.. so we can configure
+        // or mock ViewModel
         uiTestObjectGraph.inject(this)
 
         mockViewModel = (viewModelFactory as MockMainActivityViewModelFactory).mockMainActivityViewModel

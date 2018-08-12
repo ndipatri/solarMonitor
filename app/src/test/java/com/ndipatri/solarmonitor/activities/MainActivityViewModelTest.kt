@@ -2,6 +2,7 @@ package com.ndipatri.solarmonitor.activities
 
 import android.arch.core.executor.testing.InstantTaskExecutorRule
 import android.arch.lifecycle.Observer
+import android.os.Bundle
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.container.ObjectGraph
@@ -77,6 +78,13 @@ class MainActivityViewModelTest {
         viewModel.userState.observeForever(mockUserStateObserver)
         viewModel.userMessage.observeForever(mockUserMessageObserver)
         viewModel.powerOutputMessage.observeForever(mockPowerOutputMessage)
+    }
+
+    @Test
+    fun stupidActivityTest() {
+        var mainActivity = MainActivity()
+
+        mainActivity.onCreate(mock(Bundle::class.java))
     }
 
     @Test

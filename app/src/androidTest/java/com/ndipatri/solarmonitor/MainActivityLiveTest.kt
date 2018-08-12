@@ -8,8 +8,8 @@ import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.LiveTestObjectGraph
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
-import com.ndipatri.solarmonitor.utils.AsyncTaskSchedulerRule
-import com.ndipatri.solarmonitor.utils.TaskExecutorWithIdlingResourceRule
+import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
+import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -29,11 +29,11 @@ class MainActivityLiveTest {
     // This Provider uses RxJava/Retrofit to retrieve solar output from our live RESTful endpoint.
     @Rule
     @JvmField
-    var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
+    var asyncTaskSchedulerRule = RxJavaUsesAsyncTaskSchedulerRule()
 
     @Rule
     @JvmField
-    val executorRule = TaskExecutorWithIdlingResourceRule()
+    val executorRule = AACUsesIdlingResourceRule()
 
     @Inject
     lateinit var panelProvider: PanelProvider
@@ -86,7 +86,7 @@ class MainActivityLiveTest {
 
         activityRule.launchActivity(Intent())
 
-        // For Here we depend solely on the AsyncTaskSchedulerRule because our RxJava background process
+        // For Here we depend solely on the RxJavaUsesAsyncTaskSchedulerRule because our RxJava background process
         // is hitting the remote RESTful endpoint. (We don't need IdlingResource)
 
         // we know what panelId our real beacon is emitting.

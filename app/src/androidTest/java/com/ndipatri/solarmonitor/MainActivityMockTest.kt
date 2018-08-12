@@ -14,9 +14,9 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPowe
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
-import com.ndipatri.solarmonitor.utils.AsyncTaskSchedulerRule
+import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
-import com.ndipatri.solarmonitor.utils.TaskExecutorWithIdlingResourceRule
+import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import io.reactivex.Maybe
 import org.junit.Before
 import org.junit.Rule
@@ -39,11 +39,11 @@ class MainActivityMockTest {
     // This Provider uses RxJava/Retrofit to retrieve solar output from mockWebServer RESTful endpoint.
     @Rule
     @JvmField
-    var asyncTaskSchedulerRule = AsyncTaskSchedulerRule()
+    var asyncTaskSchedulerRule = RxJavaUsesAsyncTaskSchedulerRule()
 
     @Rule
     @JvmField
-    val executorRule = TaskExecutorWithIdlingResourceRule()
+    val executorRule = AACUsesIdlingResourceRule()
 
     @Inject
     lateinit var solarOutputProvider: SolarOutputProvider
@@ -62,13 +62,17 @@ class MainActivityMockTest {
     @Before
     @Throws(Exception::class)
     fun setUp() {
-        // Context of the app under test.
+        // Here Espresso lets us access target application
         solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
         solarMonitorApp.shouldCheckForHardwarePermissions = false
 
-        // With this ObjectGraph, we mock our hardware dependency. (e.g. bluetooth)
+        // With this 'Mock' ObjectGraph, we mock our hardware dependency. (e.g. PanelProvider)
+        // but everything else if 'intact'
         val mockTestObjectGraph = MockTestObjectGraph.Initializer.init(solarMonitorApp)
         solarMonitorApp.objectGraph = mockTestObjectGraph
+
+        // Here we give this test class access to the same ObjectGraph.. so we can configure
+        // these mocks (e.g. PanelProvider)
         mockTestObjectGraph.inject(this)
 
         // For the IdlingResource feature, we need to instrument the real component, unfortunately.

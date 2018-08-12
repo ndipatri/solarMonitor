@@ -10,7 +10,7 @@ import io.reactivex.Scheduler
 import io.reactivex.plugins.RxJavaPlugins
 import io.reactivex.schedulers.Schedulers
 
-class AsyncTaskSchedulerRule : TestRule {
+class RxJavaUsesAsyncTaskSchedulerRule : TestRule {
 
     private val asyncTaskScheduler = Schedulers.from(AsyncTask.THREAD_POOL_EXECUTOR)
 
