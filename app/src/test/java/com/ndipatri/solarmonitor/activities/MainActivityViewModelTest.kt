@@ -81,13 +81,6 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun stupidActivityTest() {
-        var mainActivity = MainActivity()
-
-        mainActivity.onCreate(mock(Bundle::class.java))
-    }
-
-    @Test
     fun idleState() {
 
         // Confirm that the steady state is IDLE

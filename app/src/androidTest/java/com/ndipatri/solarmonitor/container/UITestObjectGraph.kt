@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 // NJD TODO - can we get rid of ServiceModule here?
 @Singleton
-@Component(modules = arrayOf(ServiceModule::class, MockHardwareModule::class, MockViewModelModule::class))
+@Component(modules = arrayOf(ServiceModule::class, HardwareModule::class, MockViewModelModule::class))
 interface UITestObjectGraph : ObjectGraph {
     override fun inject(thingy: MainActivity)
     override fun inject(thingy: MainActivityViewModel)
@@ -30,7 +30,7 @@ interface UITestObjectGraph : ObjectGraph {
         fun init(context: Context): UITestObjectGraph {
             return DaggerUITestObjectGraph.builder()
                     .serviceModule(ServiceModule(context))
-                    .mockHardwareModule(MockHardwareModule(context))
+                    .hardwareModule(HardwareModule(context))
                     .mockViewModelModule(MockViewModelModule(context))
                     .build()
         }

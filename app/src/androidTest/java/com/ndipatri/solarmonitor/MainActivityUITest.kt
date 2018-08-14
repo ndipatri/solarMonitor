@@ -69,8 +69,6 @@ class MainActivityUITest {
         mockViewModel.userState = MutableLiveData<MainActivityViewModel.USER_STATE>().also { it.postValue(MainActivityViewModel.USER_STATE.IDLE) }
 
         mockViewModel.userMessage = MutableLiveData()
-
-        //EspressoTestUtil.disableProgressBarAnimations(activityRule)
     }
 
     @Test
