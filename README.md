@@ -2,7 +2,7 @@ This project is meant to provide a platform for experimenting with resource disc
 
 I've instrumented my rooftop solar panels with a Bluetooth Beacon which uniquely identifies them with the vendor (SolarEdge)
 
-This Android application scans for this beacon, retrieves unique account information, and then go to the vendor's cloud to retrieve my latest Solar Output in kilo-watt-hours.
+This Android application scans for this beacon, retrieves unique account information, and then goes to the vendor's cloud to retrieve my latest Solar Output in kilo-watt-hours.
 
 Key points:
 
@@ -15,6 +15,8 @@ Key points:
 4. To retrieve solar production from the SolarEdge endpoint, you will need an APIKEY.  You must provide this as an 'solarEdgeApiKey' property in a 'gradle.properties' file.
 
 5. This application scans for Eddystone beacons that have been configured with a specific namespaceId.  You must provide this as an 'beaconNamespaceId' property in a 'gradle.properties' file.
+
+6. Sorry, I realize the previous 5 steps do not constitute a proper 'How-To' guide, but rather a number of reasons why this would be really hard to setup.  I will try and add details to this over time.
 
  
 
