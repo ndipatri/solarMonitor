@@ -3,3 +3,7 @@
 -dontobfuscate
 -dontwarn
 
+#RxIdler
+-keep class io.reactivex.plugins.RxJavaPlugins { *; }
+-keep class io.reactivex.disposables.CompositeDisposable { *; }
+

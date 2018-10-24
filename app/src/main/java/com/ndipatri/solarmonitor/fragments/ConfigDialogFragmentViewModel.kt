@@ -121,11 +121,11 @@ open class ConfigDialogFragmentViewModel(context: Application) : AndroidViewMode
                 userState.value = USER_STATE.DONE
             }
 
-            override fun onSubscribe(disposable: Disposable?) {
+            override fun onSubscribe(disposable: Disposable) {
                 this@ConfigDialogFragmentViewModel.disposable = disposable
             }
 
-            override fun onError(e: Throwable?) {
+            override fun onError(e: Throwable) {
                 userState.value = USER_STATE.CONFIGURATION_ERROR
             }
         })

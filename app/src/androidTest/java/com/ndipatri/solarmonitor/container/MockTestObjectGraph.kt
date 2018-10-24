@@ -1,8 +1,7 @@
 package com.ndipatri.solarmonitor.container
 
 import android.content.Context
-import com.ndipatri.solarmonitor.MainActivityMockTest
-import com.ndipatri.solarmonitor.MainActivityUITest
+import com.ndipatri.solarmonitor.MainActivityMockUserTest
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import com.ndipatri.solarmonitor.container.modules.MockHardwareModule
@@ -21,7 +20,7 @@ interface MockTestObjectGraph : ObjectGraph {
     override fun inject(fragment: ConfigDialogFragment)
     override fun inject(thingy: PanelProvider)
 
-    fun inject(test: MainActivityMockTest)
+    fun inject(userTest: MainActivityMockUserTest)
 
     object Initializer {
         fun init(context: Context): MockTestObjectGraph {

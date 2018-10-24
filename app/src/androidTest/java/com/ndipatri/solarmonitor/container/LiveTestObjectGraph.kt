@@ -3,7 +3,7 @@ package com.ndipatri.solarmonitor.container
 import android.content.Context
 
 import com.ndipatri.solarmonitor.activities.MainActivity
-import com.ndipatri.solarmonitor.MainActivityLiveTest
+import com.ndipatri.solarmonitor.MainActivityLiveUserTest
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import com.ndipatri.solarmonitor.fragments.ConfigDialogFragment
 import com.ndipatri.solarmonitor.fragments.ConfigDialogFragmentViewModel
@@ -22,7 +22,7 @@ interface LiveTestObjectGraph : ObjectGraph {
     override fun inject(fragment: ConfigDialogFragment)
     override fun inject(thingy: PanelProvider)
 
-    fun inject(test: MainActivityLiveTest)
+    fun inject(userTest: MainActivityLiveUserTest)
 
     object Initializer {
         fun init(context: Context): LiveTestObjectGraph {

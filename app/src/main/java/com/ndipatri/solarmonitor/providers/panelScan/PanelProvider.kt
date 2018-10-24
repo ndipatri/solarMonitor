@@ -2,13 +2,13 @@ package com.ndipatri.solarmonitor.providers.panelScan
 
 
 import android.content.Context
+import android.support.test.espresso.idling.CountingIdlingResource
 import android.util.Log
 import com.ndipatri.iot.googleproximity.GoogleProximity
 import com.ndipatri.iot.googleproximity.utils.BeaconScanHelper
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.persistence.AppDatabase
-import com.ndipatri.solarmonitor.providers.CustomIdlingResource
 import com.ndipatri.solarmonitor.providers.customer.Customer
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import io.reactivex.*
@@ -25,7 +25,7 @@ open class PanelProvider(var context: Context) {
         SolarMonitorApp.instance.objectGraph.inject(this)
     }
 
-    open val idlingResource = CustomIdlingResource("panelProviderResource")
+    open val idlingResource = CountingIdlingResource("panelProviderResource")
 
     val panelDao = AppDatabase.getInstance(context).scannedPanelDao()
 
@@ -55,7 +55,7 @@ open class PanelProvider(var context: Context) {
         // depend on RxPlugins for test thread synchronization.  So we use IdlingResource
         // We can safely do this (e.g. we won't hang the test thread) because we know this
         // library has a timeout eventually.
-        idlingResource.updateIdleState(CustomIdlingResource.IS_NOT_IDLE)
+        idlingResource.increment()
 
         scanForNearbyPanelSubject = MaybeSubject.create()
 
@@ -113,10 +113,10 @@ open class PanelProvider(var context: Context) {
                                             scanForNearbyPanelSubject!!.onSuccess(customerPanel)
                                         }
 
-                                        override fun onSubscribe(d: Disposable?) {
+                                        override fun onSubscribe(d: Disposable) {
                                         }
 
-                                        override fun onError(e: Throwable?) {
+                                        override fun onError(e: Throwable) {
                                             Log.e(TAG, "Error retrieving customer.", e)
                                         }
                                     })
@@ -156,13 +156,13 @@ open class PanelProvider(var context: Context) {
                 })
 
         return scanForNearbyPanelSubject!!
-                .doFinally { idlingResource.updateIdleState(CustomIdlingResource.IS_IDLE) }
+                .doFinally { idlingResource.decrement() }
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 
     open fun updateNearbyPanel(configPanel: Panel): Completable {
 
-        idlingResource.updateIdleState(CustomIdlingResource.IS_NOT_IDLE)
+        idlingResource.increment()
 
         // A beacon with this namespace is, by definition, a panel
         val beaconNamespaceId = context.resources.getString(R.string.beaconNamespaceId)
@@ -174,13 +174,13 @@ open class PanelProvider(var context: Context) {
                 // We're getting the first 'beaconUpdate' element emitted,
                 // which would include a beacon.
                 .flatMapCompletable { beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(configPanel.description, configPanel.id)) }
-                .doFinally { idlingResource.updateIdleState(CustomIdlingResource.IS_IDLE) }
+                .doFinally { idlingResource.decrement() }
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 
     open fun eraseNearbyPanel(): Completable {
 
-        idlingResource.updateIdleState(CustomIdlingResource.IS_NOT_IDLE)
+        idlingResource.increment()
 
         // A beacon with this namespace is, by definition, a panel
         val beaconNamespaceId = context.resources.getString(R.string.beaconNamespaceId)
@@ -192,7 +192,7 @@ open class PanelProvider(var context: Context) {
                 // We're getting the first 'beaconUpdate' element emitted,
                 // which would include a beacon.
                 .flatMapCompletable { beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(NEW_PANEL_DESCRIPTION, NEW_PANEL_ID)) }
-                .doFinally { idlingResource.updateIdleState(CustomIdlingResource.IS_IDLE) }
+                .doFinally { idlingResource.decrement() }
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }
 

@@ -26,8 +26,8 @@
 -keep class javax.naming.** { *; }
 
 -dontwarn org.hamcrest.**
--dontwarn android.test.**
--dontwarn android.support.test.**
+-dontwarn android.userTest.**
+-dontwarn android.support.userTest.**
 
 -keep class org.hamcrest.** {
    *;
@@ -95,11 +95,11 @@
 -dontwarn org.mockito.**
 -dontwarn sun.reflect.**
 -dontwarn sun.misc.**
--dontwarn android.test.**
+-dontwarn android.userTest.**
 -dontwarn com.android.support.**
 -dontwarn org.mockito.**
 -dontwarn org.hamcrest.**
--dontwarn com.android.support.test.**
+-dontwarn com.android.support.userTest.**
 -dontwarn org.slf4j.impl.*
 
 -dontnote
@@ -154,8 +154,8 @@
 -keep class okhttp3.mockwebserver.** { *; }
 -keepclassmembers class okhttp3.mockwebserver.** { public *; }
 
--keep class android.support.test.** { *; }
--keepclassmembers class android.support.test.** { public *; }
+-keep class android.support.userTest.** { *; }
+-keepclassmembers class android.support.userTest.** { public *; }
 
 -keep class com.google.gson.** { *; }
 -keepclassmembers class com.google.gson.** { public *; }
@@ -206,7 +206,7 @@
 -keepattributes Signature
 #####
 
-#-keep class android.support.test.espresso.** { *; }
-#-keepclassmembers class android.support.test.espresso.** { public *; }
+#-keep class android.support.userTest.espresso.** { *; }
+#-keepclassmembers class android.support.userTest.espresso.** { public *; }
 
 

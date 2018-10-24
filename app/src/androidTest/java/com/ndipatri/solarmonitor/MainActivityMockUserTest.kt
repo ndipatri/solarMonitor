@@ -18,6 +18,8 @@ import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import io.reactivex.Maybe
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -25,21 +27,11 @@ import org.mockito.Mockito.`when`
 import java.net.MalformedURLException
 import javax.inject.Inject
 
-class MainActivityMockTest {
+class MainActivityMockUserTest {
 
     @Rule
     @JvmField
     var activityRule = ActivityTestRule<MainActivity>(MainActivity::class.java, true, false)
-
-    // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
-    // while the background thread is running in our target application. (only those background
-    // operations that are using RxJava's IO and Computation schedulers, that is)
-    //
-    // This is necessary for this test when we are 'loading' solar output using SolarOutputProvider.
-    // This Provider uses RxJava/Retrofit to retrieve solar output from mockWebServer RESTful endpoint.
-    @Rule
-    @JvmField
-    var asyncTaskSchedulerRule = RxJavaUsesAsyncTaskSchedulerRule()
 
     @Rule
     @JvmField
@@ -74,11 +66,6 @@ class MainActivityMockTest {
         // Here we give this test class access to the same ObjectGraph.. so we can configure
         // these mocks (e.g. PanelProvider)
         mockTestObjectGraph.inject(this)
-
-        // For the IdlingResource feature, we need to instrument the real component, unfortunately.
-        // This is necessary as this provider has an undisclosed background mechanism so we need
-        // to wrap the call in IdlingRegistry code to be safe.
-        IdlingRegistry.getInstance().register((customerProvider.idlingResource))
 
         clearState()
 
@@ -136,11 +123,11 @@ class MainActivityMockTest {
         // We deploy a MockWebServer to the same virtual machine as our
         // target APK
         val mockSolarOutputServer = MockSolarOutputServer().apply {
-                enqueueDesiredSolarOutputResponse(getOverviewResponse,
-                                                  solarCustomerId,
-                                                  solarApiKey)
+            enqueueDesiredSolarOutputResponse(getOverviewResponse,
+                    solarCustomerId,
+                    solarApiKey)
 
-                beginUsingMockServer()
+            beginUsingMockServer()
         }
 
         // This is the only way in which our Test APK deviates from production.  We need to
@@ -154,10 +141,15 @@ class MainActivityMockTest {
             subscriber.onComplete() // no stored panel
         })
 
-        `when`(panelProvider.scanForNearbyPanel()).thenReturn(Maybe.create { subscriber ->
-            val panelInfo = Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")
+        var panelScanMaybe: Maybe<Panel> = Maybe.create { subscriber ->
+                Thread.sleep(3000)
 
-            subscriber.onSuccess(panelInfo)
-        })
+                val panelInfo = Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")
+
+                subscriber.onSuccess(panelInfo)
+            }
+
+        `when`(panelProvider.scanForNearbyPanel()).thenReturn(
+                    panelScanMaybe.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()))
     }
 }

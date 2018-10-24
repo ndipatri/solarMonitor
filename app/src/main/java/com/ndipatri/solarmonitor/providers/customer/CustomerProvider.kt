@@ -3,10 +3,7 @@ package com.ndipatri.solarmonitor.providers.customer
 
 import android.content.Context
 import com.ndipatri.solarmonitor.persistence.AppDatabase
-import com.ndipatri.solarmonitor.providers.CustomIdlingResource
-import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import io.reactivex.Completable
-import io.reactivex.Maybe
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -14,15 +11,11 @@ import io.reactivex.schedulers.Schedulers
 
 open class CustomerProvider(var context: Context) {
 
-    val idlingResource = CustomIdlingResource("customerProviderResource")
-
     val customerDao = AppDatabase.getInstance(context).customerDao()
 
     fun findCustomerForPanel(panelId: String): Single<Customer> {
 
         return Single.create { subscribe: SingleEmitter<Customer> ->
-
-            idlingResource.updateIdleState(CustomIdlingResource.IS_NOT_IDLE)
 
             var customerName = "Customer $panelId"
 
@@ -36,8 +29,6 @@ open class CustomerProvider(var context: Context) {
             }
 
             subscribe.onSuccess(customerDao.getCustomerByName(customerName))
-
-            idlingResource.updateIdleState(CustomIdlingResource.IS_IDLE)
         }
         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
     }

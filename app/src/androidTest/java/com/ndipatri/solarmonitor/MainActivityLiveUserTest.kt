@@ -10,12 +10,13 @@ import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.inject.Inject
 
-class MainActivityLiveTest {
+class MainActivityLiveUserTest {
 
     @Rule
     @JvmField
@@ -59,8 +60,14 @@ class MainActivityLiveTest {
         // The PanelProvider actually does BLE scanning in a way that is non-blocking.  Our background
         // thread subscribes to hotObservable, so we need to wrap in IdlingRegistry.. RxJava thread
         // trickery isn't enough.
-        IdlingRegistry.getInstance().register(customerProvider.idlingResource, panelProvider.idlingResource)
+        IdlingRegistry.getInstance().register(panelProvider.idlingResource)
 
+        clearState()
+    }
+
+    @After
+    @Throws(Exception::class)
+    fun tearDown() {
         clearState()
     }
 

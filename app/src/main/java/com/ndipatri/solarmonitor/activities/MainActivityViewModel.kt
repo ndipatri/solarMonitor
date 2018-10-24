@@ -74,7 +74,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                 this@MainActivityViewModel.disposable = disposable
             }
 
-            override fun onError(e: Throwable?) {
+            override fun onError(e: Throwable) {
                 userState.value = USER_STATE.IDLE
             }
         })
@@ -142,17 +142,17 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                                 "Current ($currentProduction/hour), Lifetime($lifetimeProduction)"
                             })
                     .subscribe(object : SingleObserver<String> {
-                        override fun onSuccess(powerOutputMessage: String?) {
+                        override fun onSuccess(powerOutputMessage: String) {
                             this@MainActivityViewModel.powerOutputMessage.value = powerOutputMessage
 
                             userState.value = USER_STATE.LOADED
                         }
 
-                        override fun onSubscribe(d: Disposable?) {
+                        override fun onSubscribe(d: Disposable) {
                             this@MainActivityViewModel.disposable = disposable
                         }
 
-                        override fun onError(e: Throwable?) {
+                        override fun onError(e: Throwable) {
                             userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
 
                             resetToSteadyState()
