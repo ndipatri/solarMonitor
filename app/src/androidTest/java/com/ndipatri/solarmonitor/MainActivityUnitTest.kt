@@ -26,18 +26,11 @@ import org.junit.Test
 import org.mockito.Mockito.`when`
 import javax.inject.Inject
 
-class MainActivityUITest {
+class MainActivityUnitTest {
 
     @Rule
     @JvmField
     var activityRule = ActivityTestRule<MainActivity>(MainActivity::class.java, true, false)
-
-    // This is the coolest thing ever.  We are configuring our test thread (this thread) to block
-    // while the background thread is running in our target application. (only those background
-    // operations that are using RxJava's IO and Computation schedulers, that is)
-    @Rule
-    @JvmField
-    var asyncTaskSchedulerRule = RxJavaUsesAsyncTaskSchedulerRule()
 
     @Rule
     @JvmField
