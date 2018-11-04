@@ -2,7 +2,6 @@ package com.ndipatri.solarmonitor
 
 import android.content.Intent
 import android.support.test.InstrumentationRegistry.getInstrumentation
-import android.support.test.espresso.IdlingRegistry
 import android.support.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockTestObjectGraph
@@ -14,7 +13,6 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPowe
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
-import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import io.reactivex.Maybe
@@ -56,7 +54,7 @@ class MainActivityMockUserTest {
     fun setUp() {
         // Here Espresso lets us access target application
         solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
-        solarMonitorApp.shouldCheckForHardwarePermissions = false
+        solarMonitorApp.shouldCheckForBluetoothPermissions = false
 
         // With this 'Mock' ObjectGraph, we mock our hardware dependency. (e.g. PanelProvider)
         // but everything else if 'intact'

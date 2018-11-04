@@ -13,7 +13,7 @@ class SolarMonitorApp : Application() {
 
     var objectGraph = ObjectGraph.Initializer.init(this)
 
-    var shouldCheckForHardwarePermissions = true
+    var shouldCheckForBluetoothPermissions = true
 
     override fun onCreate() {
         super.onCreate()

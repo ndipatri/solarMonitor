@@ -15,7 +15,6 @@ import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
 import com.ndipatri.solarmonitor.container.UITestObjectGraph
 import com.ndipatri.solarmonitor.container.modules.MockMainActivityViewModelFactory
-import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.Matchers.isBitmapTheSame
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import org.hamcrest.CoreMatchers.`is`
@@ -47,7 +46,7 @@ class MainActivityUnitTest {
     fun setUp() {
         // Here Espresso lets us access target application
         solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
-        solarMonitorApp.shouldCheckForHardwarePermissions = false
+        solarMonitorApp.shouldCheckForBluetoothPermissions = false
 
         // With this 'UI' ObjectGraph, we inject a mock ViewMode, keeping everything else intact
         // so we can test using a real MainActivity class.

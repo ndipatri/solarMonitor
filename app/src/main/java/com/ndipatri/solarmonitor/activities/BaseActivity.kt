@@ -10,8 +10,8 @@ import com.ndipatri.solarmonitor.fragments.ConfigDialogFragment
 
 open class BaseActivity : RequirementsActivity() {
 
-    override fun shouldCheckPermissionsOnResume(): Boolean {
-        return SolarMonitorApp.instance.shouldCheckForHardwarePermissions
+    override fun shouldCheckBluetoothPermissions(): Boolean {
+        return SolarMonitorApp.instance.shouldCheckForBluetoothPermissions
     }
 
     //region menuSetup
