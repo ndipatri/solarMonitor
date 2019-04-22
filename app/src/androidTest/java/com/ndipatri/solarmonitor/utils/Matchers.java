@@ -4,15 +4,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.test.espresso.Root;
-import android.support.test.espresso.matcher.BoundedMatcher;
+
+import androidx.test.espresso.matcher.BoundedMatcher;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 
 import java.util.regex.Pattern;
 

@@ -2,13 +2,13 @@ package com.ndipatri.solarmonitor
 
 import android.arch.lifecycle.MutableLiveData
 import android.content.Intent
-import android.support.test.InstrumentationRegistry.getInstrumentation
-import android.support.test.espresso.Espresso.onView
-import android.support.test.espresso.action.ViewActions.click
-import android.support.test.espresso.assertion.ViewAssertions.matches
-import android.support.test.espresso.matcher.RootMatchers.withDecorView
-import android.support.test.espresso.matcher.ViewMatchers.*
-import android.support.test.rule.ActivityTestRule
+import androidx.test.InstrumentationRegistry.getInstrumentation
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
+import androidx.test.espresso.matcher.ViewMatchers.*
+import androidx.test.rule.ActivityTestRule
 import android.view.View
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel

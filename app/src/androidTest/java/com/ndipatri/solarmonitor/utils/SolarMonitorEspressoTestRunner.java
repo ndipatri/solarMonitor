@@ -1,6 +1,6 @@
 package com.ndipatri.solarmonitor.utils;
 
-import android.support.test.runner.AndroidJUnitRunner;
+import androidx.test.runner.AndroidJUnitRunner;
 
 import com.squareup.rx2.idler.Rx2Idler;
 

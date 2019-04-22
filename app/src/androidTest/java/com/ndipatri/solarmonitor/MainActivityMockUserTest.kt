@@ -1,8 +1,8 @@
 package com.ndipatri.solarmonitor
 
 import android.content.Intent
-import android.support.test.InstrumentationRegistry.getInstrumentation
-import android.support.test.rule.ActivityTestRule
+import androidx.test.InstrumentationRegistry.getInstrumentation
+import androidx.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockTestObjectGraph
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider

@@ -12,18 +12,17 @@ allprojects {
 
     ext {
         currentGradleVersion = "4.3"
-        currentBuildToolsVersion = "27.0.3"
         currentSupportLibVersion = "27.0.2"
-        currentArchLifecycleVersion = "1.1.1"
-        currentCompileSdkVersion = 26
+        currentArchLifecycleVersion = "2.0.1"
         currentMinSdkVersion = 26
-        currentTargetSdkVersion = 25
+        currentCompileSdkVersion = 28
+        currentTargetSdkVersion = 28
     }
 }
 
 subprojects {
     buildscript {
-        ext.KOTLIN_VERSION = '1.2.21'
+        ext.KOTLIN_VERSION = '1.3.30'
 
         repositories {
             mavenCentral()
@@ -45,7 +44,7 @@ subprojects {
         }
 
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.1.3'
+            classpath 'com.android.tools.build:gradle:3.3.2'
             classpath "io.realm:realm-gradle-plugin:3.5.0"
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
         }
