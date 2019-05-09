@@ -16,7 +16,7 @@
 
 package com.ndipatri.solarmonitor.utils
 
-import android.arch.core.executor.testing.CountingTaskExecutorRule
+import androidx.arch.core.executor.testing.CountingTaskExecutorRule
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.IdlingResource
 import org.junit.runner.Description

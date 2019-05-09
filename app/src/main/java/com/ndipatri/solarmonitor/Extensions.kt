@@ -1,7 +1,6 @@
 package com.ndipatri.solarmonitor
 
 import android.content.Context
-import android.support.design.widget.FloatingActionButton
 import android.view.View
 import android.widget.EditText
 import android.widget.TextView
@@ -25,16 +24,6 @@ fun TextView.show(): TextView {
 
 fun EditText.show(): EditText {
     visibility = View.VISIBLE
-    return this
-}
-
-fun FloatingActionButton._show(): FloatingActionButton {
-    visibility = View.VISIBLE
-    return this
-}
-
-fun FloatingActionButton._hide(): FloatingActionButton {
-    visibility = View.INVISIBLE
     return this
 }
 

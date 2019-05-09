@@ -2,6 +2,7 @@ package com.ndipatri.solarmonitor
 
 import android.content.Intent
 import androidx.test.InstrumentationRegistry.getInstrumentation
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.MockTestObjectGraph
@@ -53,7 +54,7 @@ class MainActivityMockUserTest {
     @Throws(Exception::class)
     fun setUp() {
         // Here Espresso lets us access target application
-        solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
+        solarMonitorApp = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as SolarMonitorApp
         solarMonitorApp.shouldCheckForBluetoothPermissions = false
 
         // With this 'Mock' ObjectGraph, we mock our hardware dependency. (e.g. PanelProvider)
@@ -76,6 +77,7 @@ class MainActivityMockUserTest {
         // other external dependency
         val mockCurentOutputInkW = 3.2
         val mockLifetimeOutputInkWh = 7200.0
+
         configureMockEndpoint(mockCurentOutputInkW, mockLifetimeOutputInkWh, mockPanelId, solarOutputProvider!!.apiKey)
     }
 
@@ -101,7 +103,7 @@ class MainActivityMockUserTest {
 
         activityRule.launchActivity(Intent())
 
-        // we know what panelId our real beacon is emitting.
+        // we know what panelId our beacon is emitting.
         assertFindingPanelViews(mockPanelId)
 
         // we cannot predict the real solar output right now.

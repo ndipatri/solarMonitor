@@ -2,8 +2,8 @@ package com.ndipatri.solarmonitor.providers.panelScan
 
 
 import android.content.Context
-import android.support.test.espresso.idling.CountingIdlingResource
 import android.util.Log
+import androidx.test.espresso.idling.CountingIdlingResource
 import com.ndipatri.iot.googleproximity.GoogleProximity
 import com.ndipatri.iot.googleproximity.utils.BeaconScanHelper
 import com.ndipatri.solarmonitor.R
@@ -16,7 +16,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.MaybeSubject
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 open class PanelProvider(var context: Context) {
@@ -200,7 +199,7 @@ open class PanelProvider(var context: Context) {
     open fun getStoredPanel(): Maybe<Panel> {
         return Maybe.create(object: MaybeOnSubscribe<Panel> {
             override fun subscribe(subscriber: MaybeEmitter<Panel>) {
-                panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: let { subscriber.onComplete() }
+                panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: subscriber.onComplete()
             }
         })
         .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())

@@ -1,6 +1,5 @@
 package com.ndipatri.solarmonitor
 
-import android.arch.lifecycle.MutableLiveData
 import android.content.Intent
 import androidx.test.InstrumentationRegistry.getInstrumentation
 import androidx.test.espresso.Espresso.onView
@@ -10,6 +9,8 @@ import androidx.test.espresso.matcher.RootMatchers.withDecorView
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.rule.ActivityTestRule
 import android.view.View
+import androidx.lifecycle.MutableLiveData
+import androidx.test.platform.app.InstrumentationRegistry
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
@@ -45,16 +46,16 @@ class MainActivityUnitTest {
     @Throws(Exception::class)
     fun setUp() {
         // Here Espresso lets us access target application
-        solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
+        solarMonitorApp = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as SolarMonitorApp
         solarMonitorApp.shouldCheckForBluetoothPermissions = false
 
-        // With this 'UI' ObjectGraph, we inject a mock ViewMode, keeping everything else intact
+        // With this 'UI' ObjectGraph, we inject a mock ViewModel, keeping everything else intact
         // so we can test using a real MainActivity class.
         val uiTestObjectGraph = UITestObjectGraph.Initializer.init(solarMonitorApp)
         solarMonitorApp.objectGraph = uiTestObjectGraph
 
         // Here we give this test class access to the same ObjectGraph.. so we can configure
-        // or mock ViewModel
+        // our mock ViewModel
         uiTestObjectGraph.inject(this)
 
         mockViewModel = (viewModelFactory as MockMainActivityViewModelFactory).mockMainActivityViewModel

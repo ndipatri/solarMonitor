@@ -1,9 +1,9 @@
 package com.ndipatri.solarmonitor.activities
 
 import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
-import android.arch.lifecycle.MutableLiveData
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.providers.customer.Customer
@@ -105,6 +105,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
             override fun onError(e: Throwable) {
                 userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
+                Log.e(TAG, "Exception while scanning for panel.", e)
 
                 resetToSteadyState()
             }
@@ -154,6 +155,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
                         override fun onError(e: Throwable) {
                             userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
+                            Log.e(TAG, "Exception while loading output.", e)
 
                             resetToSteadyState()
                         }

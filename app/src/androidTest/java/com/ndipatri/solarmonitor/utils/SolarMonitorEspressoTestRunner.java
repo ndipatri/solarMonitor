@@ -11,7 +11,7 @@ public final class SolarMonitorEspressoTestRunner extends AndroidJUnitRunner {
 
         RxJavaPlugins.setInitIoSchedulerHandler(Rx2Idler.create("RxJava 2.x IO Scheduler"));
         RxJavaPlugins.setInitComputationSchedulerHandler( Rx2Idler.create("RxJava 2.x Computation Scheduler"));
-        RxJavaPlugins.setInitNewThreadSchedulerHandler(Rx2Idler.create("RxJava 2.x Computation Scheduler"));
+        RxJavaPlugins.setInitNewThreadSchedulerHandler(Rx2Idler.create("RxJava 2.x New Thread Scheduler"));
 
         super.onStart();
     }

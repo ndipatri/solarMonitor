@@ -2,11 +2,8 @@ package com.ndipatri.solarmonitor.fragments
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.os.Bundle
-import androidx.core.app.DialogFragment
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.TypedValue
@@ -14,6 +11,9 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.TextView
+import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.ndipatri.iot.googleproximity.GoogleProximity
 import com.ndipatri.solarmonitor.*
 import com.ndipatri.solarmonitor.fragments.ConfigDialogFragmentViewModel.USER_STATE.*

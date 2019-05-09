@@ -3,6 +3,7 @@ package com.ndipatri.solarmonitor
 import android.content.Intent
 import androidx.test.InstrumentationRegistry.getInstrumentation
 import androidx.test.espresso.IdlingRegistry
+import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
 import com.ndipatri.solarmonitor.container.LiveTestObjectGraph
@@ -48,7 +49,7 @@ class MainActivityLiveUserTest {
     @Throws(Exception::class)
     fun setUp() {
         // Context of the app under test.
-        solarMonitorApp = getInstrumentation().targetContext.applicationContext as SolarMonitorApp
+        solarMonitorApp = InstrumentationRegistry.getInstrumentation().targetContext.applicationContext as SolarMonitorApp
 
         // We bootstrap the production ObjectGraph and inject it into this test class so we can access
         // production components

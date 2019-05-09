@@ -1,9 +1,9 @@
 package com.ndipatri.solarmonitor.container
 
 import android.app.Application
-import android.arch.lifecycle.ViewModel
-import android.arch.lifecycle.ViewModelProvider
 import android.content.Context
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel
 import dagger.Provides
 import javax.inject.Singleton

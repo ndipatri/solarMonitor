@@ -1,10 +1,10 @@
 package com.ndipatri.solarmonitor.activities
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.support.v7.widget.Toolbar
 import android.widget.Toast
+import androidx.appcompat.widget.Toolbar
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.ndipatri.solarmonitor.*
 import com.ndipatri.solarmonitor.activities.MainActivityViewModel.USER_STATE.*
 import com.ndipatri.solarmonitor.container.MainActivityViewModelFactory
@@ -63,9 +63,9 @@ class MainActivity : BaseActivity() {
 
                     refreshProgressBar.gone()
 
-                    scanFAB._show()
-                    loadFAB._hide()
-                    configureFAB._hide()
+                    scanFAB.show()
+                    loadFAB.hide()
+                    configureFAB.hide()
                 }
 
                 SCANNING -> {
@@ -74,9 +74,9 @@ class MainActivity : BaseActivity() {
 
                     refreshProgressBar.show()
 
-                    scanFAB._hide()
-                    loadFAB._hide()
-                    configureFAB._hide()
+                    scanFAB.hide()
+                    loadFAB.hide()
+                    configureFAB.hide()
                 }
 
                 CONFIGURE -> {
@@ -85,9 +85,9 @@ class MainActivity : BaseActivity() {
 
                     refreshProgressBar.gone()
 
-                    scanFAB._hide()
-                    loadFAB._hide()
-                    configureFAB._show()
+                    scanFAB.hide()
+                    loadFAB.hide()
+                    configureFAB.show()
                 }
 
                 LOAD -> {
@@ -98,9 +98,9 @@ class MainActivity : BaseActivity() {
 
                     refreshProgressBar.gone()
 
-                    scanFAB._show()
-                    loadFAB._show()
-                    configureFAB._hide()
+                    scanFAB.show()
+                    loadFAB.show()
+                    configureFAB.hide()
                 }
 
                 LOADING -> {
@@ -110,9 +110,9 @@ class MainActivity : BaseActivity() {
                     detailTextView.text = "solar panel (${viewModel.scannedPanel!!.id})"
                     refreshProgressBar.show()
 
-                    scanFAB._hide()
-                    loadFAB._hide()
-                    configureFAB._hide()
+                    scanFAB.hide()
+                    loadFAB.hide()
+                    configureFAB.hide()
                 }
 
                 LOADED -> {
@@ -123,9 +123,9 @@ class MainActivity : BaseActivity() {
 
                     refreshProgressBar.gone()
 
-                    scanFAB._show()
-                    loadFAB._show()
-                    configureFAB._hide()
+                    scanFAB.show()
+                    loadFAB.show()
+                    configureFAB.hide()
                 }
             }
         })
