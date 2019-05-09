@@ -14,6 +14,7 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import io.reactivex.MaybeObserver
 import io.reactivex.SingleObserver
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import java.text.NumberFormat
@@ -43,7 +44,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     @Inject
     lateinit var customerProvider: CustomerProvider
 
-    private var disposable: Disposable? = null
+    private var compositeDisposable: CompositeDisposable? = null
 
     enum class USER_STATE {
         IDLE,
@@ -71,7 +72,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
             }
 
             override fun onSubscribe(disposable: Disposable) {
-                this@MainActivityViewModel.disposable = disposable
+                this@MainActivityViewModel.compositeDisposable?.add(disposable)
             }
 
             override fun onError(e: Throwable) {
@@ -86,7 +87,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
         panelProvider.scanForNearbyPanel().subscribe(object : MaybeObserver<Panel> {
             override fun onSubscribe(disposable: Disposable) {
-                this@MainActivityViewModel.disposable = disposable
+                this@MainActivityViewModel.compositeDisposable?.add(disposable)
             }
 
             override fun onSuccess(scannedPanel: Panel) {
@@ -149,8 +150,8 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                             userState.value = USER_STATE.LOADED
                         }
 
-                        override fun onSubscribe(d: Disposable) {
-                            this@MainActivityViewModel.disposable = disposable
+                        override fun onSubscribe(disposable: Disposable) {
+                            this@MainActivityViewModel.compositeDisposable?.add(disposable)
                         }
 
                         override fun onError(e: Throwable) {
@@ -166,7 +167,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     override fun onCleared() {
         super.onCleared()
 
-        disposable?.dispose()
+        compositeDisposable?.dispose()
     }
 
     companion object {
