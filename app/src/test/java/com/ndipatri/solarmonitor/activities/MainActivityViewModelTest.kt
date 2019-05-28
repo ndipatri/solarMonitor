@@ -1,8 +1,7 @@
 package com.ndipatri.solarmonitor.activities
 
-import android.arch.core.executor.testing.InstantTaskExecutorRule
-import android.arch.lifecycle.Observer
-import android.os.Bundle
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.Observer
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.container.ObjectGraph
@@ -248,7 +247,7 @@ class MainActivityViewModelTest {
 
 
 
-        var expectedPowerOutputMessage = "Current ($0.17/hour), Lifetime($0.62)"
+        var expectedPowerOutputMessage = "Current ($0.17/hour), Annual ($0.62)"
         assertEquals(expectedPowerOutputMessage, viewModel.powerOutputMessage.value)
         verify(mockPowerOutputMessage).onChanged(expectedPowerOutputMessage)
     }

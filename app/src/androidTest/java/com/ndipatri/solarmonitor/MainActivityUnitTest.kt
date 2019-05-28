@@ -71,11 +71,11 @@ class MainActivityUnitTest {
         activityRule.launchActivity(Intent())
 
         onView(withText("Click to find nearby solar panel.")).check(matches(isCompletelyDisplayed()))
-        onView(withId(R.id.detailTextView)).check(matches(not<View>(isDisplayed())))
-        onView(withId(R.id.refreshProgressBar)).check(matches(not<View>(isDisplayed())))
+        onView(withId(R.id.detailTextView)).check(matches(not(isDisplayed())))
+        onView(withId(R.id.refreshProgressBar)).check(matches(not(isDisplayed())))
         onView(withId(R.id.scanFAB)).check(matches(isCompletelyDisplayed())).check(matches(isBitmapTheSame(android.R.drawable.ic_menu_compass)))
-        onView(withId(R.id.loadFAB)).check(matches(not<View>(isDisplayed())))
-        onView(withId(R.id.configureFAB)).check(matches(not<View>(isDisplayed())))
+        onView(withId(R.id.loadFAB)).check(matches(not(isDisplayed())))
+        onView(withId(R.id.configureFAB)).check(matches(not(isDisplayed())))
     }
 
     @Test

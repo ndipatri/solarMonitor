@@ -141,7 +141,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                                     lifetimeProduction = currencyFormat.format(it/1000 * customer.dollarsPerkWh)
                                 }
 
-                                "Current ($currentProduction/hour), Lifetime($lifetimeProduction)"
+                                "Current ($currentProduction/hour), Annual ($lifetimeProduction)"
                             })
                     .subscribe(object : SingleObserver<String> {
                         override fun onSuccess(powerOutputMessage: String) {

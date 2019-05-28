@@ -101,6 +101,6 @@ class MainActivityLiveUserTest {
         assertFindingPanelViews("480557")
 
         // we cannot predict the real solar output right now.
-        assertLoadingSolarOutputViews("Current \\((.*?)/hour\\)\\, Lifetime\\((.*?)\\)", "480557")
+        assertLoadingSolarOutputViews("Current \\((.*?)/hour\\)\\, Annual \\((.*?)\\)", "480557")
     }
 }

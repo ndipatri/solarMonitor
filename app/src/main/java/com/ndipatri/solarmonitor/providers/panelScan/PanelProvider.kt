@@ -70,6 +70,7 @@ open class PanelProvider(var context: Context) {
                     override fun onSubscribe(d: Disposable) {}
 
                     override fun onSuccess(beaconUpdate: BeaconScanHelper.BeaconUpdate) {
+
                         if (beaconUpdate.beacon.isPresent) {
                             val beacon = beaconUpdate.beacon.get()
 
