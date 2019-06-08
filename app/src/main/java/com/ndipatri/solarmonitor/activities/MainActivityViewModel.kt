@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.providers.customer.Customer
@@ -17,6 +18,8 @@ import io.reactivex.SingleObserver
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
+import kotlinx.coroutines.*
+import kotlinx.coroutines.rx2.await
 import java.text.NumberFormat
 import javax.inject.Inject
 
@@ -120,47 +123,50 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     }
 
     open fun loadSolarOutput() {
-        scannedPanel?.apply {
 
-            userState.setValue(USER_STATE.LOADING)
+        scannedPanel?.also {
 
-            solarOutputProvider.getSolarOutput(this.id)
-                    .zipWith(customerProvider.findCustomerForPanel(this.id),
-                            BiFunction<PowerOutput, Customer, String> { powerOutput: PowerOutput, customer: Customer ->
+            viewModelScope.launch {
 
-                                val currencyFormat = NumberFormat.getCurrencyInstance()
+                // we're still on main thread here.
 
-                                var currentProduction = "unavailable"
-                                powerOutput.currentPowerInWatts?.let {
-                                    // We'll just assume the production of current output for one hour
-                                    currentProduction = currencyFormat.format(it/1000 * customer.dollarsPerkWh)
-                                }
+                userState.setValue(USER_STATE.LOADING)
 
-                                var lifetimeProduction = "unavailable"
-                                powerOutput.lifetimePowerInWattHours?.let {
-                                    lifetimeProduction = currencyFormat.format(it/1000 * customer.dollarsPerkWh)
-                                }
+                try {
 
-                                "Current ($currentProduction/hour), Annual ($lifetimeProduction)"
-                            })
-                    .subscribe(object : SingleObserver<String> {
-                        override fun onSuccess(powerOutputMessage: String) {
-                            this@MainActivityViewModel.powerOutputMessage.value = powerOutputMessage
+                    // This is a suspendable function that is 'main safe' so nothing to do here
+                    // but to call it.
+                    var powerOutputDeferred = solarOutputProvider.getSolarOutput(it.id)
 
-                            userState.value = USER_STATE.LOADED
-                        }
+                    // Here we're taking advantage of coroutine/rx2 bridge to convert Single to Deferred,
+                    // and then waiting on that deferred.  While we wait, our current stack frame is
+                    // suspended and the main thread is made available.
+                    var customer = customerProvider.findCustomerForPanel(it.id).await()
 
-                        override fun onSubscribe(disposable: Disposable) {
-                            this@MainActivityViewModel.compositeDisposable?.add(disposable)
-                        }
+                    val currencyFormat = NumberFormat.getCurrencyInstance()
 
-                        override fun onError(e: Throwable) {
-                            userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
-                            Log.e(TAG, "Exception while loading output.", e)
+                    var currentProduction = "unavailable"
+                    powerOutputDeferred.currentPowerInWatts?.let {
+                        // We'll just assume the production of current output for one hour
+                        currentProduction = currencyFormat.format(it / 1000 * customer.dollarsPerkWh)
+                    }
 
-                            resetToSteadyState()
-                        }
-                    })
+                    var lifetimeProduction = "unavailable"
+                    powerOutputDeferred.lifetimePowerInWattHours?.let {
+                        lifetimeProduction = currencyFormat.format(it / 1000 * customer.dollarsPerkWh)
+                    }
+
+                    this@MainActivityViewModel
+                            .powerOutputMessage.value = "Current ($currentProduction/hour), Annual ($lifetimeProduction)"
+
+                    userState.value = USER_STATE.LOADED
+                } catch (e: Throwable) {
+                    userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
+                    Log.e(TAG, "Exception while loading output.", e)
+
+                    resetToSteadyState()
+                }
+            }
         }
     }
 

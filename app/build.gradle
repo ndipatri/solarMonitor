@@ -123,6 +123,23 @@ dependencies {
     }
     implementation 'com.cantrowitz:rxbroadcast:2.0.0'
 
+    // Both are necessary to do coroutines on Android.
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
+
+    // This lets our Retrofit calls return Deferred instead of RX.  So we can treat
+    // them as if they were called using async()
+    implementation 'com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2'
+
+    // This lets us convert RxJava calls to return Deferred.  We can then all
+    // await() on these (as if they were async() calls).
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-rx2:1.2.1'
+
+    // Among other things, this gives us viewModelScope static property on ViewModel
+    // which uses default MAIN dispatcher and unified Job scope that is automatically
+    // cancelled when the ViewModel is cancelled.
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0-alpha01"
+
     implementation "com.squareup.retrofit2:retrofit:${RETROFIT_VERSION}"
     implementation "com.squareup.retrofit2:converter-gson:${RETROFIT_VERSION}"
     implementation "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_VERSION}"
