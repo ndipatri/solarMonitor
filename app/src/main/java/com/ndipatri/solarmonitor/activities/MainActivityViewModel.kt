@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
+import com.ndipatri.solarmonitor.UI_COMFORT_DELAY
 import com.ndipatri.solarmonitor.providers.customer.Customer
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
@@ -128,14 +129,17 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
             viewModelScope.launch {
 
-                // we're still on main thread here.
+                // we're still on main thread here. But now that we're in a coroutine,
+                // this code block can be suspended as we call suspend functions.
 
                 userState.setValue(USER_STATE.LOADING)
 
                 try {
 
                     // This is a suspendable function that is 'main safe' so nothing to do here
-                    // but to call it.
+                    // but to call it. 'main safe' means that if this function has to do some
+                    // 'background' work, it will switch threads itself either through
+                    // 'withContext' or 'async' or 'launch'
                     var powerOutputDeferred = solarOutputProvider.getSolarOutput(it.id)
 
                     // Here we're taking advantage of coroutine/rx2 bridge to convert Single to Deferred,
@@ -164,6 +168,11 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                     userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
                     Log.e(TAG, "Exception while loading output.", e)
 
+                    // This is another coroutine that will allow this code block to yield the main
+                    // thread for a bit..
+                    delay(UI_COMFORT_DELAY)
+
+                    // .. then after that delay, we update our UI state.
                     resetToSteadyState()
                 }
             }

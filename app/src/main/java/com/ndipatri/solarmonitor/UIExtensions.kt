@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 
+val UI_COMFORT_DELAY = 3000L
 
 fun Context.toast(message: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
     Toast.makeText(this, message, duration).show()
