@@ -12,6 +12,7 @@ import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import io.reactivex.CompletableObserver
 import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.rx2.await
 import java.util.regex.Pattern
 import javax.inject.Inject
 
@@ -107,23 +108,20 @@ open class ConfigDialogFragmentViewModel(context: Application) : AndroidViewMode
 
     fun configurePanel(description: String, id: String) {
 
-        val updatedPanel = Panel(id, description)
+        viewModelScope.launch {
 
-        userState.value = USER_STATE.CONFIGURING_PANEL
+            val updatedPanel = Panel(id, description)
 
-        panelProvider.updateNearbyPanel(configPanel = updatedPanel).subscribe(object: CompletableObserver {
-            override fun onComplete() {
+            userState.value = USER_STATE.CONFIGURING_PANEL
+
+            try {
+                panelProvider.updateNearbyPanel(configPanel = updatedPanel)
+
                 userState.value = USER_STATE.DONE
-            }
-
-            override fun onSubscribe(disposable: Disposable) {
-                this@ConfigDialogFragmentViewModel.disposable = disposable
-            }
-
-            override fun onError(e: Throwable) {
+            } catch (th: Throwable) {
                 userState.value = USER_STATE.CONFIGURATION_ERROR
             }
-        })
+        }
     }
 
     fun eraseNearbyPanel() {

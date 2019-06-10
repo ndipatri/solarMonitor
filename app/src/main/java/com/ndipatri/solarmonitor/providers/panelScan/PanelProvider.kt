@@ -94,22 +94,37 @@ open class PanelProvider(var context: Context) {
         return scannedPanel
     }
 
-    open fun updateNearbyPanel(configPanel: Panel): Completable {
+    open suspend fun updateNearbyPanel(configPanel: Panel) {
 
+        // We call an external BLE scanning library which we know eventually returns
+        // an async response on either success or failure... For this reason, we cannot
+        // depend on RxPlugins for test thread synchronization.  So we use IdlingResource
+        // We can safely do this (e.g. we won't hang the test thread) because we know this
+        // library has a timeout eventually.
         idlingResource.increment()
 
         // A beacon with this namespace is, by definition, a panel
         val beaconNamespaceId = context.resources.getString(R.string.beaconNamespaceId)
 
-        return GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
-                .firstElement() // once is good enough
-                .doFinally { GoogleProximity.getInstance().stopBeaconScanning() }
+        try {
 
-                // We're getting the first 'beaconUpdate' element emitted,
-                // which would include a beacon.
-                .flatMapCompletable { beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(configPanel.description, configPanel.id)) }
-                .doFinally { idlingResource.decrement() }
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+            // Here we're taking advantage of coroutine/rx2 bridge to convert an Observable stream
+            // to Deferred<BeaconUpdate>.. This particular operator 'awaitFirst()' will resume
+            // once the first element has been emitted from stream.
+            var beaconUpdate = GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS).awaitFirst()
+
+            GoogleProximity.getInstance().stopBeaconScanning()
+
+            if (beaconUpdate.beacon.isPresent) {
+                val beacon = beaconUpdate.beacon.get()
+
+                Log.d(TAG, "Configuring beacon.. $beacon'.")
+
+                GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(configPanel.description, configPanel.id))
+            }
+        } finally {
+            idlingResource.decrement()
+        }
     }
 
     open fun eraseNearbyPanel(): Completable {

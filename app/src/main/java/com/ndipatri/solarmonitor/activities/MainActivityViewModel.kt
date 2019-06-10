@@ -15,6 +15,7 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
 import io.reactivex.MaybeObserver
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -141,22 +142,22 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                     // but to call it. 'main safe' means that if this function has to do some
                     // 'background' work, it will switch threads itself either through
                     // 'withContext' or 'async' or 'launch'
-                    var powerOutputDeferred = solarOutputProvider.getSolarOutput(it.id)
+                    var powerOutputDeferred = async {solarOutputProvider.getSolarOutput(it.id)}
 
                     // same as above.
-                    var customer = customerProvider.findCustomerForPanel(it.id)
+                    var customerDeferred = async {customerProvider.findCustomerForPanel(it.id)}
 
                     val currencyFormat = NumberFormat.getCurrencyInstance()
 
                     var currentProduction = "unavailable"
-                    powerOutputDeferred.currentPowerInWatts?.let {
+                    powerOutputDeferred.await().currentPowerInWatts?.let {
                         // We'll just assume the production of current output for one hour
-                        currentProduction = currencyFormat.format(it / 1000 * customer.dollarsPerkWh)
+                        currentProduction = currencyFormat.format(it / 1000 * customerDeferred.await().dollarsPerkWh)
                     }
 
                     var lifetimeProduction = "unavailable"
-                    powerOutputDeferred.lifetimePowerInWattHours?.let {
-                        lifetimeProduction = currencyFormat.format(it / 1000 * customer.dollarsPerkWh)
+                    powerOutputDeferred.await().lifetimePowerInWattHours?.let {
+                        lifetimeProduction = currencyFormat.format(it / 1000 * customerDeferred.await().dollarsPerkWh)
                     }
 
                     this@MainActivityViewModel
