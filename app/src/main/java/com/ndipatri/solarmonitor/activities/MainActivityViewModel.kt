@@ -8,19 +8,15 @@ import androidx.lifecycle.viewModelScope
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.UI_COMFORT_DELAY
-import com.ndipatri.solarmonitor.providers.customer.Customer
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
-import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import io.reactivex.MaybeObserver
-import io.reactivex.SingleObserver
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
-import io.reactivex.functions.BiFunction
-import kotlinx.coroutines.*
-import kotlinx.coroutines.rx2.await
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import javax.inject.Inject
 
@@ -89,38 +85,43 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
 
         userState.value = USER_STATE.SCANNING
 
-        panelProvider.scanForNearbyPanel().subscribe(object : MaybeObserver<Panel> {
-            override fun onSubscribe(disposable: Disposable) {
-                this@MainActivityViewModel.compositeDisposable?.add(disposable)
-            }
+        viewModelScope.launch {
 
-            override fun onSuccess(scannedPanel: Panel) {
-                this@MainActivityViewModel.scannedPanel = scannedPanel
+            // we're still on main thread here. But now that we're in a coroutine,
+            // this code block itself can be suspended as we call suspend functions.
 
-                if (scannedPanel.id?.length == 6) {
-                    Log.d(TAG, "Panel found with id configured ${scannedPanel.id}.")
+            try {
+                // This is a suspendable function that is 'main safe' so nothing to do here
+                // but to call it. 'main safe' means that if this function has to do some
+                // 'background' work, it will switch threads itself either through
+                // 'withContext' or 'async' or 'launch'
+                var scannedPanel = panelProvider.scanForNearbyPanel()
 
-                    userState.value = USER_STATE.LOAD
-                } else {
-                    Log.d(TAG, "Panel found, but it needs to be configured.")
+                scannedPanel?.apply {
+                    this@MainActivityViewModel.scannedPanel = scannedPanel
 
-                    userState.value = USER_STATE.CONFIGURE
+                    if (scannedPanel.id?.length == 6) {
+                        Log.d(TAG, "Panel found with id configured ${scannedPanel.id}.")
+
+                        userState.value = USER_STATE.LOAD
+                    } else {
+                        Log.d(TAG, "Panel found, but it needs to be configured.")
+
+                        userState.value = USER_STATE.CONFIGURE
+                    }
+                } ?: let {
+                    userMessage.value = this@MainActivityViewModel.getApplication<Application>()
+                            .getString(R.string.no_nearby_panels_were_found)
+
+                    resetToSteadyState()
                 }
-            }
-
-            override fun onError(e: Throwable) {
+            } catch (e: Exception) {
                 userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
                 Log.e(TAG, "Exception while scanning for panel.", e)
 
                 resetToSteadyState()
             }
-
-            override fun onComplete() {
-                userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.no_nearby_panels_were_found)
-
-                resetToSteadyState()
-            }
-        })
+        }
     }
 
     open fun loadSolarOutput() {
@@ -130,7 +131,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
             viewModelScope.launch {
 
                 // we're still on main thread here. But now that we're in a coroutine,
-                // this code block can be suspended as we call suspend functions.
+                // this code block itself can be suspended as we call suspend functions.
 
                 userState.setValue(USER_STATE.LOADING)
 
@@ -142,10 +143,8 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                     // 'withContext' or 'async' or 'launch'
                     var powerOutputDeferred = solarOutputProvider.getSolarOutput(it.id)
 
-                    // Here we're taking advantage of coroutine/rx2 bridge to convert Single to Deferred,
-                    // and then waiting on that deferred.  While we wait, our current stack frame is
-                    // suspended and the main thread is made available.
-                    var customer = customerProvider.findCustomerForPanel(it.id).await()
+                    // same as above.
+                    var customer = customerProvider.findCustomerForPanel(it.id)
 
                     val currencyFormat = NumberFormat.getCurrencyInstance()
 

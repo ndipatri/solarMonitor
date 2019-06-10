@@ -4,13 +4,14 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import io.reactivex.CompletableObserver
-import io.reactivex.MaybeObserver
 import io.reactivex.disposables.Disposable
+import kotlinx.coroutines.launch
 import java.util.regex.Pattern
 import javax.inject.Inject
 
@@ -79,36 +80,30 @@ open class ConfigDialogFragmentViewModel(context: Application) : AndroidViewMode
 
     fun searchForPanel() {
 
-        userState.value = USER_STATE.SEARCHING_FOR_PANEL
+        viewModelScope.launch {
 
-        panelProvider.scanForNearbyPanel().subscribe(object : MaybeObserver<Panel> {
-            override fun onSubscribe(disposable: Disposable) {
-                this@ConfigDialogFragmentViewModel.disposable = disposable
-            }
+            userState.value = USER_STATE.SEARCHING_FOR_PANEL
 
-            override fun onSuccess(scannedPanel: Panel) {
-                Log.d(TAG, "Panel found.  Trying to configure ...")
+            try {
+                panelProvider.scanForNearbyPanel()?.apply {
+                    Log.d(TAG, "Panel found.  Trying to configure ...")
 
-                this@ConfigDialogFragmentViewModel.scannedPanel.value = scannedPanel
+                    this@ConfigDialogFragmentViewModel.scannedPanel.value = this
 
-                newPanelDescriptionEntered(scannedPanel.description, sendUserMessage = false)
-                newPanelIdEntered(scannedPanel.id, sendUserMessage = false)
+                    newPanelDescriptionEntered(description, sendUserMessage = false)
+                    newPanelIdEntered(id, sendUserMessage = false)
 
-                userState.value = USER_STATE.PANEL_FOUND
-            }
-
-            override fun onError(e: Throwable) {
+                    userState.value = USER_STATE.PANEL_FOUND
+                } ?: let {
+                    userState.value = USER_STATE.NO_PANEL_FOUND
+                }
+            } catch(e: Exception) {
                 Log.e(TAG, "Error while searching for panel.", e)
 
                 userState.value = USER_STATE.NO_PANEL_FOUND
             }
-
-            override fun onComplete() {
-                userState.value = USER_STATE.NO_PANEL_FOUND
-            }
-        })
+        }
     }
-
 
     fun configurePanel(description: String, id: String) {
 
@@ -130,7 +125,6 @@ open class ConfigDialogFragmentViewModel(context: Application) : AndroidViewMode
             }
         })
     }
-
 
     fun eraseNearbyPanel() {
 

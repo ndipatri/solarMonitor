@@ -50,8 +50,7 @@ class SolarOutputProvider(val apiKey: String) {
         var lifeTimeEnergy: Double? = null
 
         // Much like 'withContext()' this launches a new coroutine with a time constraint.
-        //withTimeout(SOLAR_OUTPUT_TIMEOUT_SECONDS*1000L) {
-        withTimeout(5) {
+        withTimeout(SOLAR_OUTPUT_TIMEOUT_SECONDS*1000L) {
 
             // Here we are converting a Single to a Deferred and then waiting on that.
             // Note that while we are waiting, this stack frame is saved and while

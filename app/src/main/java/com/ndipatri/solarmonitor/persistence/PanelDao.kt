@@ -31,7 +31,7 @@ interface PanelDao {
     fun getStoredPanel(): Panel?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertOrReplacePanel(panel: Panel)
+    suspend fun insertOrReplacePanel(panel: Panel)
 
     @Query("delete from Panel where id = :panelId")
     fun deletePanel(panelId: String): Int

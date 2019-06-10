@@ -8,29 +8,28 @@ import io.reactivex.Single
 import io.reactivex.SingleEmitter
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Deferred
 
 open class CustomerProvider(var context: Context) {
 
     val customerDao = AppDatabase.getInstance(context).customerDao()
 
-    fun findCustomerForPanel(panelId: String): Single<Customer> {
+    suspend fun findCustomerForPanel(panelId: String): Customer {
 
-        return Single.create { subscribe: SingleEmitter<Customer> ->
+        var customerName = "Customer $panelId"
 
-            var customerName = "Customer $panelId"
+        // NJD TODO - In the future, this would be a cloud lookup based on panelId,
+        // but for now, we hardcode.. associate our customer with any panel
+        // we find.
+        Customer(customerName,
+                .13671).apply {
 
-            // NJD TODO - In the future, this would be a cloud lookup based on panelId,
-            // but for now, we hardcode.. associate our customer with any panel
-            // we find.
-            Customer(customerName,
-                    .13671).apply {
-
-                customerDao.insertOrReplaceCustomer(this)
-            }
-
-            subscribe.onSuccess(customerDao.getCustomerByName(customerName))
+            // Because 'insertOrReplaceCustomer' is a suspend function, we know Room
+            // will handle switching threads to make this a 'main safe' call.
+            customerDao.insertOrReplaceCustomer(this)
         }
-        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+
+        return customerDao.getCustomerByName(customerName)
     }
 
     open fun deleteAllCustomers(): Completable {

@@ -28,10 +28,10 @@ import com.ndipatri.solarmonitor.providers.customer.Customer
 interface CustomerDao {
 
     @Insert(onConflict = IGNORE)
-    fun insertOrReplaceCustomer(customer: Customer)
+    suspend fun insertOrReplaceCustomer(customer: Customer)
 
     @Query("select * from Customer where id = :id")
-    fun getCustomerByName(id: String): Customer
+    suspend fun getCustomerByName(id: String): Customer
 
     @Query("SELECT * FROM Customer " +
             "INNER JOIN Panel ON Panel.customerId = Customer.id " +

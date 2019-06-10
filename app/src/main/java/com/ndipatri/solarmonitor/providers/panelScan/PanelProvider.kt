@@ -16,6 +16,11 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.MaybeSubject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.rx2.await
+import kotlinx.coroutines.rx2.awaitFirst
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 open class PanelProvider(var context: Context) {
@@ -31,23 +36,9 @@ open class PanelProvider(var context: Context) {
     @Inject
     lateinit var customerProvider: CustomerProvider
 
-    /**
-     * Possible outcomes:
-     *
-     *
-     * 1. found no panel (onComplete() without onSuccess())
-     * 2. found new panel (onSuccess() with new Panel having default values)
-     * 3. found configured panel (onSuccess() with existing Panel)
-     * 4. threw error (onError())
-     *
-     *
-     * This implementation is a bit complex.. I tried to use a simple chain of operators, but I
-     * couldn't distinguish #2 and #3
-     * should maybe try again sometime when i'm smarter...
-     */
-    private var scanForNearbyPanelSubject: MaybeSubject<Panel>? = null
+    open suspend fun scanForNearbyPanel(): Panel? {
 
-    open fun scanForNearbyPanel(): Maybe<Panel> {
+        var scannedPanel: Panel? = null
 
         // We call an external BLE scanning library which we know eventually returns
         // an async response on either success or failure... For this reason, we cannot
@@ -56,108 +47,51 @@ open class PanelProvider(var context: Context) {
         // library has a timeout eventually.
         idlingResource.increment()
 
-        scanForNearbyPanelSubject = MaybeSubject.create()
+        try {
 
-        // A beacon with this namespace is, by definition, a panel
-        val beaconNamespaceId = context.resources.getString(R.string.beaconNamespaceId)
+            // A beacon with this namespace is, by definition, a panel
+            val beaconNamespaceId = context.resources.getString(R.string.beaconNamespaceId)
 
-        GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
-                .firstElement() // once is good enough
-                .doFinally { GoogleProximity.getInstance().stopBeaconScanning() }
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(object : MaybeObserver<BeaconScanHelper.BeaconUpdate> {
+            // Here we're taking advantage of coroutine/rx2 bridge to convert an Observable stream
+            // to Deferred<BeaconUpdate>.. This particular operator 'awaitFirst()' will resume
+            // once the first element has been emitted from stream.
+            var beaconUpdate = GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS).awaitFirst()
 
-                    override fun onSubscribe(d: Disposable) {}
+            GoogleProximity.getInstance().stopBeaconScanning()
 
-                    override fun onSuccess(beaconUpdate: BeaconScanHelper.BeaconUpdate) {
+            if (beaconUpdate.beacon.isPresent) {
+                val beacon = beaconUpdate.beacon.get()
 
-                        if (beaconUpdate.beacon.isPresent) {
-                            val beacon = beaconUpdate.beacon.get()
+                Log.d(TAG, "Beacon found.. $beacon'. Retrieving panel info ...")
 
-                            Log.d(TAG, "Beacon found.. $beacon'. Retrieving panel info ...")
+                var beaconAttachments = GoogleProximity.getInstance().retrieveAttachment(beacon).await()
 
-                            // NJD TODO - eek, embedded callback.. must fix!!!!! (notice multiple !'s)
-                            GoogleProximity.getInstance().retrieveAttachment(beacon)
-                                    // I have to do this becuase i'm doing this horrible callback-hell
-                                    // thing and this onSuccess() really needs to be in the background.
-                                    // ultimately it should be part of a flatMap
-                                    .observeOn(Schedulers.io())
-                                    .subscribe(object : MaybeObserver<Array<String>> {
-                                override fun onSubscribe(d: Disposable) {}
+                beaconAttachments?.apply {
 
-                                override fun onSuccess(attachment: Array<String>) {
+                    var panelDescription = this[0]
 
-                                    var panelDescription = attachment[0]
+                    var retrievedAttachment: String = this[1]
 
-                                    var retrievedAttachment: String = attachment[1]
+                    var panelId = retrievedAttachment ?: NEW_PANEL_ID
 
-                                    var panelId = retrievedAttachment?: NEW_PANEL_ID
+                    // Presumably goes out to cloud to get Customer associated with
+                    // this Panel.
+                    var panelCustomer = customerProvider.findCustomerForPanel(panelId = panelId)
 
-                                    // Presumably goes out to cloud to get Customer associated with
-                                    // this Panel.
-                                    customerProvider.findCustomerForPanel(panelId = panelId)
-                                            // I have to do this becuase i'm doing this horrible callback-hell
-                                            // thing and this onSuccess() really needs to be in the background.
-                                            // ultimately it should be part of a flatMap
-                                            .observeOn(Schedulers.io())
-                                            .subscribe(object: SingleObserver<Customer> {
-                                        override fun onSuccess(panelCustomer: Customer) {
+                    scannedPanel = Panel(panelId, panelDescription, panelCustomer.id)
 
-                                            var customerPanel = Panel(panelId, panelDescription, panelCustomer.id)
+                    panelDao.insertOrReplacePanel(scannedPanel!!)
 
-                                            // NJD TODO - normally you cannot do such operations on UI thread
-                                            // but until i fix this callback hell, this needs to be here.
-                                            panelDao.insertOrReplacePanel(customerPanel)
+                } ?: let {
+                    // scan found new panel
+                    scannedPanel = Panel(id = "1111", customerId = null)
+                }
+            }
+        } finally {
+            idlingResource.decrement()
+        }
 
-                                            // scan found configured panel
-                                            scanForNearbyPanelSubject!!.onSuccess(customerPanel)
-                                        }
-
-                                        override fun onSubscribe(d: Disposable) {
-                                        }
-
-                                        override fun onError(e: Throwable) {
-                                            Log.e(TAG, "Error retrieving customer.", e)
-                                        }
-                                    })
-                                }
-
-                                override fun onError(e: Throwable) {
-
-                                    Log.e(TAG, "Error retrieving attachment.", e)
-                                    // couldn't retrieve panel information..
-                                    scanForNearbyPanelSubject!!.onError(e)
-                                }
-
-                                override fun onComplete() {
-
-                                    // scan found new panel
-                                    scanForNearbyPanelSubject!!.onSuccess(Panel(id = "1111", customerId = null))
-                                }
-                            })
-                        } else {
-                            Log.e(TAG, "Couldn't find beacon.")
-                            scanForNearbyPanelSubject!!.onComplete()
-                        }
-                    }
-
-                    override fun onError(e: Throwable) {
-                        Log.e(TAG, "No beacon found.", e)
-
-                        scanForNearbyPanelSubject!!.onError(e)
-                    }
-
-                    override fun onComplete() {
-                        Log.d(TAG, "Couldn't find beacon.")
-
-                        // scan found no panel
-                        scanForNearbyPanelSubject!!.onComplete()
-                    }
-                })
-
-        return scanForNearbyPanelSubject!!
-                .doFinally { idlingResource.decrement() }
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        return scannedPanel
     }
 
     open fun updateNearbyPanel(configPanel: Panel): Completable {
