@@ -5,22 +5,12 @@ import android.content.Context
 import android.util.Log
 import androidx.test.espresso.idling.CountingIdlingResource
 import com.ndipatri.iot.googleproximity.GoogleProximity
-import com.ndipatri.iot.googleproximity.utils.BeaconScanHelper
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
 import com.ndipatri.solarmonitor.persistence.AppDatabase
-import com.ndipatri.solarmonitor.providers.customer.Customer
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
-import io.reactivex.*
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.MaybeSubject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.rx2.awaitFirst
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 open class PanelProvider(var context: Context) {
@@ -127,41 +117,45 @@ open class PanelProvider(var context: Context) {
         }
     }
 
-    open fun eraseNearbyPanel(): Completable {
+    open suspend fun eraseNearbyPanel() {
 
+        // We call an external BLE scanning library which we know eventually returns
+        // an async response on either success or failure... For this reason, we cannot
+        // depend on RxPlugins for test thread synchronization.  So we use IdlingResource
+        // We can safely do this (e.g. we won't hang the test thread) because we know this
+        // library has a timeout eventually.
         idlingResource.increment()
 
         // A beacon with this namespace is, by definition, a panel
         val beaconNamespaceId = context.resources.getString(R.string.beaconNamespaceId)
 
-        return GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS)
-                .firstElement() // once is good enough
-                .doFinally { GoogleProximity.getInstance().stopBeaconScanning() }
+        try {
 
-                // We're getting the first 'beaconUpdate' element emitted,
-                // which would include a beacon.
-                .flatMapCompletable { beaconUpdate -> GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(NEW_PANEL_DESCRIPTION, NEW_PANEL_ID)) }
-                .doFinally { idlingResource.decrement() }
-                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-    }
+            // Here we're taking advantage of coroutine/rx2 bridge to convert an Observable stream
+            // to Deferred<BeaconUpdate>.. This particular operator 'awaitFirst()' will resume
+            // once the first element has been emitted from stream.
+            var beaconUpdate = GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS).awaitFirst()
 
+            GoogleProximity.getInstance().stopBeaconScanning()
 
-    open fun getStoredPanel(): Maybe<Panel> {
-        return Maybe.create(object: MaybeOnSubscribe<Panel> {
-            override fun subscribe(subscriber: MaybeEmitter<Panel>) {
-                panelDao.getStoredPanel()?.let { subscriber.onSuccess(it) } ?: subscriber.onComplete()
+            if (beaconUpdate.beacon.isPresent) {
+                val beacon = beaconUpdate.beacon.get()
+
+                Log.d(TAG, "Configuring beacon.. $beacon'.")
+
+                GoogleProximity.getInstance().updateBeacon(beaconUpdate.beacon.get(), arrayOf(NEW_PANEL_DESCRIPTION, NEW_PANEL_ID))
             }
-        })
-        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        } finally {
+            idlingResource.decrement()
+        }
     }
 
-    open fun deleteAllPanels(): Completable {
-        return Completable.create { subscriber ->
-            panelDao.deleteAllPanels()
-            subscriber.onComplete()
-        }.also {
-            it.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-        }
+    open suspend fun getStoredPanel(): Panel? {
+        return panelDao.getStoredPanel()
+    }
+
+    open suspend fun deleteAllPanels() {
+        panelDao.deleteAllPanels()
     }
 
     companion object {

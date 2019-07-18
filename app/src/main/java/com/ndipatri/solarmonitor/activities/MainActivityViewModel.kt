@@ -57,29 +57,24 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     } // user is viewing loaded solar output
 
     open fun resetToSteadyState() {
-        panelProvider.getStoredPanel().subscribe(object : MaybeObserver<Panel> {
-            override fun onSuccess(storedPanel: Panel) {
 
-                // For now, we pretend we scanned for the stored panel. The user
-                // can scan for new panels as they wish
-                this@MainActivityViewModel.scannedPanel = storedPanel
+        viewModelScope.launch {
 
-                userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.using_stored_panel)
-                userState.value = USER_STATE.LOAD
-            }
+            try {
+                panelProvider.getStoredPanel()?.apply {
+                    // For now, we pretend we scanned for the stored panel. The user
+                    // can scan for new panels as they wish
+                    this@MainActivityViewModel.scannedPanel = this
 
-            override fun onComplete() {
+                    userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.using_stored_panel)
+                    userState.value = USER_STATE.LOAD
+                } ?: let {
+                    userState.value = USER_STATE.IDLE
+                }
+            } catch (th: Throwable) {
                 userState.value = USER_STATE.IDLE
             }
-
-            override fun onSubscribe(disposable: Disposable) {
-                this@MainActivityViewModel.compositeDisposable?.add(disposable)
-            }
-
-            override fun onError(e: Throwable) {
-                userState.value = USER_STATE.IDLE
-            }
-        })
+        }
     }
 
     open fun scanForNearbyPanel() {

@@ -3,12 +3,6 @@ package com.ndipatri.solarmonitor.providers.customer
 
 import android.content.Context
 import com.ndipatri.solarmonitor.persistence.AppDatabase
-import io.reactivex.Completable
-import io.reactivex.Single
-import io.reactivex.SingleEmitter
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
-import kotlinx.coroutines.Deferred
 
 open class CustomerProvider(var context: Context) {
 
@@ -32,11 +26,8 @@ open class CustomerProvider(var context: Context) {
         return customerDao.getCustomerByName(customerName)
     }
 
-    open fun deleteAllCustomers(): Completable {
-        return Completable.create(){ subscriber ->
-            customerDao.deleteAllCustomers()?.let { subscriber.onComplete() }
-        }
-        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+    open suspend fun deleteAllCustomers() {
+        customerDao.deleteAllCustomers()
     }
 
     companion object {

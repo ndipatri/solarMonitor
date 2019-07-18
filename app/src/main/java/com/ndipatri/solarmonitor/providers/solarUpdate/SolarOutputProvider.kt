@@ -7,11 +7,9 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import io.reactivex.Single
 import io.reactivex.SingleEmitter
-import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.rx2.await
 import kotlinx.coroutines.withTimeout
 import retrofit2.Retrofit
@@ -20,7 +18,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
-import java.util.concurrent.TimeUnit
 
 class SolarOutputProvider(val apiKey: String) {
 

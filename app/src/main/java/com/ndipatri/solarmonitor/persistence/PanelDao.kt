@@ -28,7 +28,7 @@ import com.ndipatri.solarmonitor.providers.panelScan.Panel
 interface PanelDao {
 
     @Query("select * from Panel LIMIT 1")
-    fun getStoredPanel(): Panel?
+    suspend fun getStoredPanel(): Panel?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertOrReplacePanel(panel: Panel)
@@ -37,5 +37,5 @@ interface PanelDao {
     fun deletePanel(panelId: String): Int
 
     @Query("delete from Panel")
-    fun deleteAllPanels(): Int
+    suspend fun deleteAllPanels(): Int
 }
