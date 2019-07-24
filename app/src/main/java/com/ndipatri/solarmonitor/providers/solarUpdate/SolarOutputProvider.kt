@@ -1,11 +1,14 @@
 package com.ndipatri.solarmonitor.providers.solarUpdate
 
 
+import androidx.test.espresso.IdlingRegistry
+import com.jakewharton.espresso.OkHttp3IdlingResource
 import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
@@ -25,38 +28,22 @@ class SolarOutputProvider(val apiKey: String) {
             // will return same deferred value with no background call.
             deferredSolarOutputRESTInterface = scope.async(context = Dispatchers.IO,
                                                            start = CoroutineStart.LAZY) {
+
+                var okHttpClient = OkHttpClient()
+                IdlingRegistry.getInstance().register(OkHttp3IdlingResource.create("okhttp", okHttpClient));
+
                 Retrofit.Builder().apply {
                     baseUrl(API_ENDPOINT_BASE_URL)
                             .addCallAdapterFactory(CoroutineCallAdapterFactory())
                             .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
                             .addConverterFactory(GsonConverterFactory.create())
-
+                    client(okHttpClient)
                 }.build().create(SolarOutputRESTInterface::class.java)
             }
         }
 
         return deferredSolarOutputRESTInterface as Deferred<SolarOutputRESTInterface>
     }
-
-//    private val solarOutputRESTEndpoint: Single<SolarOutputRESTInterface> by lazy {
-//
-//        Single.create { subscribe: SingleEmitter<SolarOutputRESTInterface> ->
-//
-//            val retrofitBuilder = Retrofit.Builder()
-//                    .baseUrl(API_ENDPOINT_BASE_URL)
-//                    .addCallAdapterFactory(CoroutineCallAdapterFactory())
-//                    .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-//                    .addConverterFactory(GsonConverterFactory.create())
-//            try {
-//                subscribe.onSuccess(retrofitBuilder.build().create(SolarOutputRESTInterface::class.java!!))
-//            } catch (ex: Exception) {
-//                Log.e("SolarOutputProvider", "Exception while getting endpoint.", ex)
-//            }
-//        }
-//
-//        .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-//        .cache()
-//    }
 
     suspend fun getSolarOutput(customerId: String): PowerOutput {
 

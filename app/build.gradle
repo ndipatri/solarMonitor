@@ -81,6 +81,7 @@ final ARCH_LIFECYCLE_VERSION = rootProject.ext.get("currentArchLifecycleVersion"
 
 dependencies {
     implementation 'androidx.test.espresso:espresso-idling-resource:3.1.0'
+
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-web:3.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.1.0'
@@ -148,6 +149,10 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:${RETROFIT_VERSION}"
 
     androidTestImplementation 'com.squareup.rx.idler:rx2-idler:0.9.1'
+
+    // need this for synchronizing coroutines making retrofit calls..  since above
+    // rxIdler won't work
+    implementation 'com.jakewharton.espresso:okhttp3-idling-resource:1.0.0'
 
     // apt command comes from the android-apt plugin
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
