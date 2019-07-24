@@ -1,7 +1,6 @@
 package com.ndipatri.solarmonitor
 
 import android.content.Intent
-import androidx.test.InstrumentationRegistry.getInstrumentation
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.rule.ActivityTestRule
 import com.ndipatri.solarmonitor.activities.MainActivity
@@ -14,11 +13,9 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.CurrentPowe
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeData
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
-import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
-import io.reactivex.Maybe
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
+import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -83,8 +80,10 @@ class MainActivityMockUserTest {
 
     private fun clearState() {
         // clear out any remaining state.
-        panelProvider.deleteAllPanels()
-        customerProvider.deleteAllCustomers()
+        runBlocking {
+            panelProvider.deleteAllPanels()
+            customerProvider.deleteAllCustomers()
+        }
     }
 
     // Here we are injecting a 'mock' ObjectGraph which gives us the chance to mock out
@@ -137,19 +136,18 @@ class MainActivityMockUserTest {
 
     private fun configureMockHardware(desiredPanelDesc: String, desiredPanelId: String) {
 
-        `when`(panelProvider.getStoredPanel()).thenReturn(Maybe.create { subscriber ->
-            subscriber.onComplete() // no stored panel
-        })
+        runBlocking {
+            `when`(panelProvider.getStoredPanel()).thenReturn(null)
+        }
 
-        var panelScanMaybe: Maybe<Panel> = Maybe.create { subscriber ->
-                Thread.sleep(3000)
-
-                val panelInfo = Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")
-
-                subscriber.onSuccess(panelInfo)
-            }
-
-        `when`(panelProvider.scanForNearbyPanel()).thenReturn(
-                    panelScanMaybe.subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()))
+        runBlocking {
+            kotlinx.coroutines.delay(
+                    3000
+            )
+            `when`(panelProvider.scanForNearbyPanel()).thenReturn(
+                //kotlinx.coroutines.delay(3000)
+                Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")
+            )
+        }
     }
 }

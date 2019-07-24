@@ -44,15 +44,11 @@ subprojects {
         }
 
         dependencies {
-            classpath 'com.android.tools.build:gradle:3.3.2'
+            classpath 'com.android.tools.build:gradle:3.4.2'
             classpath "io.realm:realm-gradle-plugin:3.5.0"
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$KOTLIN_VERSION"
         }
     }
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = project.ext.get("currentGradleVersion")
 }
 
 buildscript {

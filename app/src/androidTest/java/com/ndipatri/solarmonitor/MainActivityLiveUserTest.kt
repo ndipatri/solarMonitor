@@ -11,6 +11,7 @@ import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.utils.RxJavaUsesAsyncTaskSchedulerRule
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -74,8 +75,10 @@ class MainActivityLiveUserTest {
 
     private fun clearState() {
         // clear out any remaining state.
-        panelProvider.deleteAllPanels().subscribe()
-        customerProvider.deleteAllCustomers().subscribe()
+        runBlocking {
+            panelProvider.deleteAllPanels()
+            customerProvider.deleteAllCustomers()
+        }
     }
 
     // Live Testing
