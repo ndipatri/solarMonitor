@@ -129,7 +129,6 @@ dependencies {
 
     // Both are necessary to do coroutines on Android.
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1'
 
     // This lets our Retrofit calls return Deferred instead of RX.  So we can treat
     // them as if they were called using async()
@@ -176,6 +175,7 @@ dependencies {
     //androidTestImplementation 'com.linkedin.dexmaker:dexmaker-mockito-inline:2.25.0'
 
     testImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
+    androidTestImplementation "com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0"
 
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.0-M2'
 

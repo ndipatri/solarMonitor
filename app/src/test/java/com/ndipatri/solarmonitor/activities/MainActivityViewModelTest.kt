@@ -11,8 +11,13 @@ import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
-import io.reactivex.Maybe
-import io.reactivex.Single
+import com.ndipatri.solarmonitor.utils.CoroutinesTestRule
+import com.nhaarman.mockitokotlin2.whenever
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -22,6 +27,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
+import java.util.concurrent.TimeoutException
 
 
 @RunWith(MockitoJUnitRunner::class)
@@ -32,6 +38,10 @@ class MainActivityViewModelTest {
     @Rule
     @JvmField
     val instantExecutorRule = InstantTaskExecutorRule()
+
+    //  This is to Dispatchers.main will return main thread of this jUnit test.
+    @get:Rule
+    var coroutinesTestRule = CoroutinesTestRule()
 
     // Object under test
     private lateinit var viewModel: MainActivityViewModel
@@ -64,7 +74,7 @@ class MainActivityViewModelTest {
         // Fake out Dagger - we will be manually injecting any required collaborators as mocks
         // in this test suite
         SolarMonitorApp.instance = mockContext
-        `when`(mockContext.objectGraph).thenReturn(mock(ObjectGraph::class.java))
+        whenever(mockContext.objectGraph).thenReturn(mock(ObjectGraph::class.java))
 
         viewModel = MainActivityViewModel(mockContext)
 
@@ -79,6 +89,13 @@ class MainActivityViewModelTest {
         viewModel.powerOutputMessage.observeForever(mockPowerOutputMessage)
     }
 
+    @After
+    fun teardown() {
+        viewModel.userState.removeObserver(mockUserStateObserver)
+        viewModel.userMessage.removeObserver(mockUserMessageObserver)
+        viewModel.powerOutputMessage.removeObserver(mockPowerOutputMessage)
+    }
+
     @Test
     fun idleState() {
 
@@ -88,25 +105,30 @@ class MainActivityViewModelTest {
         // Confirm that as soon as this state is observed, it is delivered IDLE
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.IDLE)
     }
-    /**
 
     @Test
-    fun scanningState_waitingForScanResults() {
-        `when`(mockPanelProvider.scanForNearbyPanel()).thenReturn(Maybe.create {subscriber -> {}})
+    fun scanningState_waitingForResults() {
+
+        // This guarantees that background work will be done not on test thread.
+        // since we are not mocking any response, none will be given...
+        Dispatchers.setMain(Dispatchers.IO)
 
         viewModel.scanForNearbyPanel()
-
         assertEquals(MainActivityViewModel.USER_STATE.SCANNING, viewModel.userState.value)
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.SCANNING)
     }
 
     @Test
     fun scanningState_results_configuredPanelFound() {
-        `when`(mockPanelProvider.scanForNearbyPanel()).thenReturn(Maybe.create {subscriber ->
+        // although not necessary for this test, this launcher gives us extra control
+        // over  our tests (e.g. time shifting)
+        runBlockingTest {
+            whenever(mockPanelProvider.scanForNearbyPanel()).thenReturn(
 
-            // Now when we scan for panel, we will get an immediate response
-            subscriber.onSuccess(Panel("123456"))
-        })
+                // Now when we scan for panel, we will get an immediate response
+                Panel("123456")
+            )
+        }
 
         viewModel.scanForNearbyPanel()
 
@@ -116,11 +138,13 @@ class MainActivityViewModelTest {
 
     @Test
     fun scanningState_results_unconfiguredPanelFound() {
-        `when`(mockPanelProvider.scanForNearbyPanel()).thenReturn(Maybe.create {subscriber ->
+        runBlockingTest {
+            whenever(mockPanelProvider.scanForNearbyPanel()).thenReturn(
 
-            // Now when we scan for panel, we will get an immediate response
-            subscriber.onSuccess(Panel("someWrongValue"))
-        })
+                    // Now when we scan for panel, we will get an immediate response
+                    Panel("someWrongValue")
+            )
+        }
 
         viewModel.scanForNearbyPanel()
 
@@ -130,22 +154,26 @@ class MainActivityViewModelTest {
 
     @Test
     fun scanningState_results_noPanelFound_storedPanelExists() {
-        `when`(mockPanelProvider.scanForNearbyPanel()).thenReturn(Maybe.create {subscriber ->
+        runBlocking {
+            whenever(mockPanelProvider.scanForNearbyPanel()).thenReturn(
 
-            // Now when we scan for panel, we will indicate not panel was found
-            subscriber.onComplete()
-        })
+                // Now when we scan for panel, we will indicate not panel was found
+                null
+            )
+        }
 
         // In the case of no nearby panel, we then try to load a persisted panel that
         // we've scanned in the past... so let's set that up
-        `when`(mockPanelProvider.getStoredPanel()).thenReturn(Maybe.create {subscriber ->
+        runBlocking {
+            whenever(mockPanelProvider.getStoredPanel()).thenReturn(
 
-            // Now when we look for stored panel, we will indicate that one was stored...
-            subscriber.onSuccess(Panel("123"))
-        })
+                // Now when we look for stored panel, we will indicate that one was stored...
+                Panel("123")
+            )
+        }
 
-        `when`(mockContext.getString(R.string.no_nearby_panels_were_found)).thenReturn("first test message")
-        `when`(mockContext.getString(R.string.using_stored_panel)).thenReturn("second test message")
+        whenever(mockContext.getString(R.string.no_nearby_panels_were_found)).thenReturn("first test message")
+        whenever(mockContext.getString(R.string.using_stored_panel)).thenReturn("second test message")
 
 
         viewModel.scanForNearbyPanel()
@@ -160,22 +188,23 @@ class MainActivityViewModelTest {
 
     @Test
     fun scanningState_results_noPanelFound_storedPanelDoesNotExist() {
-        `when`(mockPanelProvider.scanForNearbyPanel()).thenReturn(Maybe.create {subscriber ->
+        runBlocking {
+            whenever(mockPanelProvider.scanForNearbyPanel()).thenReturn(
 
-            // Now when we scan for panel, we will indicate not panel was found
-            subscriber.onComplete()
-        })
+                // Now when we scan for panel, we will indicate not panel was found
+                null
+            )
 
-        // In the case of no nearby panel, we then try to load a persisted panel that
-        // we've scanned in the past... so let's set that up
-        `when`(mockPanelProvider.getStoredPanel()).thenReturn(Maybe.create {subscriber ->
+            // In the case of no nearby panel, we then try to load a persisted panel that
+            // we've scanned in the past... so let's set that up
+            whenever(mockPanelProvider.getStoredPanel()).thenReturn(
 
-            // Now when we look for stored panel, we will indicate not panel was stored either...
-            subscriber.onComplete()
-        })
+                // Now when we look for stored panel, we will indicate not panel was stored either...
+                null
+            )
+        }
 
-        `when`(mockContext.getString(R.string.no_nearby_panels_were_found)).thenReturn("test message")
-
+        whenever(mockContext.getString(R.string.no_nearby_panels_were_found)).thenReturn("test message")
 
         viewModel.scanForNearbyPanel()
 
@@ -188,20 +217,22 @@ class MainActivityViewModelTest {
 
     @Test
     fun scanningState_results_error() {
-        `when`(mockPanelProvider.scanForNearbyPanel()).thenReturn(Maybe.create {subscriber ->
+        runBlockingTest {
+            doAnswer { throw TimeoutException() }
+                    .whenever(mockPanelProvider).scanForNearbyPanel()
+        }
 
-            subscriber.onError(Exception())
-        })
+        runBlocking {
+            // In the case of a scan error, we then try to load a persisted panel that
+            // we've scanned in the past... so let's set that up
+            whenever(mockPanelProvider.getStoredPanel()).thenReturn(
 
-        // In the case of a scan error, we then try to load a persisted panel that
-        // we've scanned in the past... so let's set that up
-        `when`(mockPanelProvider.getStoredPanel()).thenReturn(Maybe.create {subscriber ->
+                // Now when we look for stored panel, we will indicate not panel was stored either...
+                null
+            )
+        }
 
-            // Now when we look for stored panel, we will indicate not panel was stored either...
-            subscriber.onComplete()
-        })
-
-        `when`(mockContext.getString(R.string.error_please_try_again)).thenReturn("test message")
+        whenever(mockContext.getString(R.string.error_please_try_again)).thenReturn("test message")
 
         viewModel.scanForNearbyPanel()
 
@@ -213,40 +244,28 @@ class MainActivityViewModelTest {
     }
 
     @Test
-    fun loadingState_waitingForScanResults() {
-        // we'll assume this was done in previous step
-        var scannedPanel = Panel("123")
-        viewModel.scannedPanel = scannedPanel
-
-        `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
-        `when`(mockCustomerProvider.findCustomerForPanel(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber -> {}})
-
-        viewModel.loadSolarOutput()
-
-        assertEquals(MainActivityViewModel.USER_STATE.LOADING, viewModel.userState.value)
-        verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.LOADING)
-    }
-
-    @Test
     fun loadingState_results_success() {
         // we'll assume this was done in previous step
         var scannedPanel = Panel("123")
         viewModel.scannedPanel = scannedPanel
 
-        `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber ->
+        runBlocking() {
 
-            // assume we can receive power output from provider ...
-            subscriber.onSuccess(PowerOutput(1230.0, 4560.0))
-        })
+            whenever(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(
 
-        `when`(mockCustomerProvider.findCustomerForPanel("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
+                    // assume we can receive power output from provider ...
+                    PowerOutput(1230.0, 4560.0)
+            )
+
+            whenever(mockCustomerProvider.findCustomerForPanel("123")).thenReturn(
+                    Customer("Customer 123", .13671)
+            )
+        }
 
         viewModel.loadSolarOutput()
 
         assertEquals(MainActivityViewModel.USER_STATE.LOADED, viewModel.userState.value)
         verify(mockUserStateObserver).onChanged(MainActivityViewModel.USER_STATE.LOADED)
-
-
 
         var expectedPowerOutputMessage = "Current ($0.17/hour), Annual ($0.62)"
         assertEquals(expectedPowerOutputMessage, viewModel.powerOutputMessage.value)
@@ -255,32 +274,33 @@ class MainActivityViewModelTest {
 
     @Test
     fun loadingState_results_error() {
+
         // we'll assume this was done in previous step
         var scannedPanel = Panel("123")
         viewModel.scannedPanel = scannedPanel
 
-        `when`(mockSolarOutputProvider.getSolarOutput(ArgumentMatchers.anyString())).thenReturn(Single.create { subscriber ->
+        // This is the only way to make mocks throw Exceptions with kotlin
+        runBlockingTest {
+            doAnswer { throw Exception() }
+                    .whenever(mockSolarOutputProvider)
+                    .getSolarOutput(ArgumentMatchers.anyString())
+        }
 
-            subscriber.onError(Exception())
-        })
+        runBlockingTest {
+            // upon any failure, we always try to load stored panel ... so make that fail too
+            doAnswer { throw Exception() }
+                    .whenever(mockPanelProvider)
+                    .getStoredPanel()
+        }
 
-        // upon any failure, we always try to load stored panel ... so make that fail too
-        `when`(mockPanelProvider.getStoredPanel()).thenReturn(Maybe.create {subscriber ->
-
-            subscriber.onError(Exception())
-        })
-
-        `when`(mockCustomerProvider.findCustomerForPanel("123")).thenReturn(Single.just(Customer("Customer 123", .13671)))
-
-        `when`(mockContext.getString(R.string.error_please_try_again)).thenReturn("test message")
+        whenever(mockContext.getString(R.string.error_please_try_again)).thenReturn("error message")
 
         viewModel.loadSolarOutput()
 
-        verify(mockUserMessageObserver).onChanged("test message")
+        verify(mockUserMessageObserver).onChanged("error message")
 
         assertEquals(MainActivityViewModel.USER_STATE.IDLE, viewModel.userState.value)
-        verify(mockUserStateObserver, times(2)).onChanged(MainActivityViewModel.USER_STATE.IDLE)   }
-
-    **/
+        verify(mockUserStateObserver, times(2)).onChanged(MainActivityViewModel.USER_STATE.IDLE)
+    }
 }
 

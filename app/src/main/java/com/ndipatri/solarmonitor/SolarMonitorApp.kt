@@ -5,7 +5,7 @@ import android.app.Application
 import com.ndipatri.iot.googleproximity.GoogleProximity
 import com.ndipatri.solarmonitor.container.ObjectGraph
 
-class SolarMonitorApp : Application() {
+open class SolarMonitorApp : Application() {
 
     init {
         instance = this

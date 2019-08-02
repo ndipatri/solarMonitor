@@ -19,7 +19,7 @@ import retrofit2.http.Query
 class SolarOutputProvider(val apiKey: String) {
 
 
-    private var deferredSolarOutputRESTInterface: Deferred<SolarOutputRESTInterface>? = null
+    var deferredSolarOutputRESTInterface: Deferred<SolarOutputRESTInterface>? = null
     private fun getSolarOutputRESTEndpoint(scope: CoroutineScope): Deferred<SolarOutputRESTInterface> {
 
         if (deferredSolarOutputRESTInterface == null) {
@@ -72,7 +72,7 @@ class SolarOutputProvider(val apiKey: String) {
         return PowerOutput(currentPower, lifeTimeEnergy)
     }
 
-    internal interface SolarOutputRESTInterface {
+    public interface SolarOutputRESTInterface {
 
         @GET("site/{siteId}/overview.json")
         fun getOverview(@Path("siteId") siteId: String, @Query("api_key") apiKey: String): Deferred<GetOverviewResponse>
@@ -80,7 +80,7 @@ class SolarOutputProvider(val apiKey: String) {
 
     companion object {
 
-        val SOLAR_OUTPUT_TIMEOUT_SECONDS = 10
+        val SOLAR_OUTPUT_TIMEOUT_SECONDS = 5
 
         var API_ENDPOINT_BASE_URL = "https://monitoringapi.solaredge.com/"
     }

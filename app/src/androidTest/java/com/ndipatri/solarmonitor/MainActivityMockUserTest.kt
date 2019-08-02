@@ -15,6 +15,8 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.LifeTimeDat
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.Overview
 import com.ndipatri.solarmonitor.utils.AACUsesIdlingResourceRule
 import com.ndipatri.solarmonitor.utils.MockSolarOutputServer
+import com.nhaarman.mockitokotlin2.whenever
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -137,14 +139,14 @@ class MainActivityMockUserTest {
     private fun configureMockHardware(desiredPanelDesc: String, desiredPanelId: String) {
 
         runBlocking {
-            `when`(panelProvider.getStoredPanel()).thenReturn(null)
+            whenever(panelProvider.getStoredPanel()).thenReturn(null)
         }
 
         runBlocking {
-            kotlinx.coroutines.delay(
+            delay(
                     3000
             )
-            `when`(panelProvider.scanForNearbyPanel()).thenReturn(
+            whenever(panelProvider.scanForNearbyPanel()).thenReturn(
                 //kotlinx.coroutines.delay(3000)
                 Panel(desiredPanelId, desiredPanelDesc, "Customer ${desiredPanelId}")
             )
