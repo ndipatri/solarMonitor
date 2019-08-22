@@ -162,13 +162,8 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                     userMessage.value = this@MainActivityViewModel.getApplication<Application>().getString(R.string.error_please_try_again)
                     Log.e(TAG, "Exception while loading output.", e)
 
-                    // This is another coroutine that will allow this code block to yield the main
-                    // thread for a bit..
-                    // NJD TODO - wtf.. why does following line cause test to fail:
-                    // MainActivityViewModelTest.loadingState_results_error()
-                    //delay(UI_COMFORT_DELAY)
-
                     // .. then after that delay, we update our UI state.
+                    //delay(1000)
                     resetToSteadyState()
                 }
             }

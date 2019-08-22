@@ -69,12 +69,12 @@ class SolarOutputProviderTest {
     @Test
     fun solarOutput_happyPath()  {
 
-        var overviewResponse = GlobalScope.async {
-            mockGetOverviewResponse
+        runBlockingTest {
+            whenever(mockSolarOutputRESTService.getOverview("123", "456")).thenReturn(
+                    mockGetOverviewResponse
+            )
         }
-        whenever(mockSolarOutputRESTService.getOverview("123", "456")).thenReturn(
-            overviewResponse
-        )
+
         whenever(mockGetOverviewResponse.overview).thenReturn(
             mockOverview
         )
@@ -106,13 +106,12 @@ class SolarOutputProviderTest {
     @Test
     fun solarOutput_endpointTimeout()  {
 
-        var overviewResponse = GlobalScope.async {
+        runBlockingTest {
             Thread.sleep(10000)
-            mockGetOverviewResponse
+            whenever(mockSolarOutputRESTService.getOverview("123", "456")).thenReturn(
+                    mockGetOverviewResponse
+            )
         }
-        whenever(mockSolarOutputRESTService.getOverview("123", "456")).thenReturn(
-                overviewResponse
-        )
 
         var deferredSolarOutputRESTInterface = GlobalScope.async {
             mockSolarOutputRESTService

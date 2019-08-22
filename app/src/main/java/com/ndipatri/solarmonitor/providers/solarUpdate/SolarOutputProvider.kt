@@ -59,9 +59,8 @@ class SolarOutputProvider(val apiKey: String) {
             // thread is released.
             var endpoint = getSolarOutputRESTEndpoint(this).await()
 
-            // Retrofit is already returning a Deferred so we just have to wait. Otherwise,
-            // same as above.
-            var getOverviewResponse = endpoint.getOverview(customerId, apiKey).await()
+            // Since Retrofit is no longer returning a Single, this call is straightforward...
+            var getOverviewResponse = endpoint.getOverview(customerId, apiKey)
 
             // Since we waited, we are now back on original calling thread and we have
             // our data from above asynchronous calls.
@@ -72,10 +71,10 @@ class SolarOutputProvider(val apiKey: String) {
         return PowerOutput(currentPower, lifeTimeEnergy)
     }
 
-    public interface SolarOutputRESTInterface {
+    interface SolarOutputRESTInterface {
 
         @GET("site/{siteId}/overview.json")
-        fun getOverview(@Path("siteId") siteId: String, @Query("api_key") apiKey: String): Deferred<GetOverviewResponse>
+        suspend fun getOverview(@Path("siteId") siteId: String, @Query("api_key") apiKey: String): GetOverviewResponse
     }
 
     companion object {
