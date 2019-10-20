@@ -75,7 +75,7 @@ android {
 final ESPRESSO_VERSION = '3.0.1'
 final TEST_RUNNER = '1.0.1'
 final DAGGER_VERSION = '2.12'
-final RETROFIT_VERSION = '2.2.0'
+final RETROFIT_VERSION = '2.6.2'
 final SUPPORT_VERSION = rootProject.ext.get("currentSupportLibVersion")
 final ARCH_LIFECYCLE_VERSION = rootProject.ext.get("currentArchLifecycleVersion")
 
@@ -133,6 +133,8 @@ dependencies {
     // This lets our Retrofit calls return Deferred instead of RX.  So we can treat
     // them as if they were called using async()
     implementation 'com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2'
+
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.2.1'
 
     // This lets us convert RxJava calls to return Deferred.  We can then all
     // await() on these (as if they were async() calls).
