@@ -93,7 +93,7 @@ dependencies {
     androidTestImplementation 'org.mockito:mockito-android:2.27.0'
     kaptAndroidTest "com.google.dagger:dagger-compiler:${DAGGER_VERSION}"
 
-    testImplementation 'org.mockito:mockito-core:2.11.0'
+    testImplementation 'org.mockito:mockito-core:3.1.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation ('androidx.arch.core:core-testing:2.0.0') {
