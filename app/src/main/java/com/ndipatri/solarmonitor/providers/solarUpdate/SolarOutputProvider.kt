@@ -8,17 +8,13 @@ import com.ndipatri.solarmonitor.providers.solarUpdate.dto.PowerOutput
 import com.ndipatri.solarmonitor.providers.solarUpdate.dto.solaredge.GetOverviewResponse
 import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.*
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
-
-
 
 class SolarOutputProvider(val apiKey: String) {
 
@@ -33,10 +29,7 @@ class SolarOutputProvider(val apiKey: String) {
             deferredSolarOutputRESTInterface = scope.async(context = Dispatchers.IO,
                                                            start = CoroutineStart.LAZY) {
 
-                val interceptor = HttpLoggingInterceptor()
-                interceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
-                val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
-
+                var okHttpClient = OkHttpClient()
                 IdlingRegistry.getInstance().register(OkHttp3IdlingResource.create("okhttp", okHttpClient));
 
                 Retrofit.Builder().apply {
