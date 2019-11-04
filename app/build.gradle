@@ -75,7 +75,7 @@ android {
 final ESPRESSO_VERSION = '3.0.1'
 final TEST_RUNNER = '1.0.1'
 final DAGGER_VERSION = '2.12'
-final RETROFIT_VERSION = '2.2.0'
+final RETROFIT_VERSION = '2.6.2'
 final SUPPORT_VERSION = rootProject.ext.get("currentSupportLibVersion")
 final ARCH_LIFECYCLE_VERSION = rootProject.ext.get("currentArchLifecycleVersion")
 
