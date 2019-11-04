@@ -43,13 +43,15 @@ class MainActivityViewModelTest {
     @get:Rule
     var coroutinesTestRule = CoroutinesTestRule()
 
+
     // Object under test
     private lateinit var viewModel: MainActivityViewModel
 
-    // All necessary mocks...
+
     @Mock
     private lateinit var mockContext: SolarMonitorApp
 
+    // Mocks from the view ...
     @Mock
     private lateinit var mockUserStateObserver: Observer<MainActivityViewModel.USER_STATE>
 
@@ -59,6 +61,7 @@ class MainActivityViewModelTest {
     @Mock
     private lateinit var mockPowerOutputMessage: Observer<String>
 
+    // Mocks from middleware ...
     @Mock
     private lateinit var mockPanelProvider: PanelProvider
 

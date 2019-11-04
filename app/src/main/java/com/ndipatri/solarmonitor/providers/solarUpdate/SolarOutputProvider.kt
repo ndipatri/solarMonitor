@@ -53,7 +53,7 @@ class SolarOutputProvider(val apiKey: String) {
         // Much like 'withContext()' this launches a new coroutine with a time constraint.
         withTimeout(SOLAR_OUTPUT_TIMEOUT_SECONDS*1000L) {
 
-            // Here we are converting a Single to a Deferred and then waiting on that.
+            // Here we are getting a Deferred and then waiting on that.
             // Note that while we are waiting, this stack frame is saved and while
             // the background rxJava call is running on background, the current
             // thread is released.
