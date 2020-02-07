@@ -18,31 +18,18 @@ import retrofit2.http.Query
 
 class SolarOutputProvider(val apiKey: String) {
 
+    var solarOutputRESTInterface: SolarOutputRESTInterface = run {
 
-    var deferredSolarOutputRESTInterface: Deferred<SolarOutputRESTInterface>? = null
-    private fun getSolarOutputRESTEndpoint(scope: CoroutineScope): Deferred<SolarOutputRESTInterface> {
+        var okHttpClient = OkHttpClient()
+        IdlingRegistry.getInstance().register(OkHttp3IdlingResource.create("okhttp", okHttpClient));
 
-        if (deferredSolarOutputRESTInterface == null) {
-
-            // This will launch when first 'await()' is called.  All subsequent 'await()' calls
-            // will return same deferred value with no background call.
-            deferredSolarOutputRESTInterface = scope.async(context = Dispatchers.IO,
-                                                           start = CoroutineStart.LAZY) {
-
-                var okHttpClient = OkHttpClient()
-                IdlingRegistry.getInstance().register(OkHttp3IdlingResource.create("okhttp", okHttpClient));
-
-                Retrofit.Builder().apply {
-                    baseUrl(API_ENDPOINT_BASE_URL)
-                            .addCallAdapterFactory(CoroutineCallAdapterFactory())
-                            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
-                            .addConverterFactory(GsonConverterFactory.create())
-                    client(okHttpClient)
-                }.build().create(SolarOutputRESTInterface::class.java)
-            }
-        }
-
-        return deferredSolarOutputRESTInterface as Deferred<SolarOutputRESTInterface>
+        Retrofit.Builder().apply {
+            baseUrl(API_ENDPOINT_BASE_URL)
+                    .addCallAdapterFactory(CoroutineCallAdapterFactory())
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
+                    .addConverterFactory(GsonConverterFactory.create())
+            client(okHttpClient)
+        }.build().create(SolarOutputRESTInterface::class.java)
     }
 
     suspend fun getSolarOutput(customerId: String): PowerOutput {
@@ -53,14 +40,8 @@ class SolarOutputProvider(val apiKey: String) {
         // Much like 'withContext()' this launches a new coroutine with a time constraint.
         withTimeout(SOLAR_OUTPUT_TIMEOUT_SECONDS*1000L) {
 
-            // Here we are getting a Deferred and then waiting on that.
-            // Note that while we are waiting, this stack frame is saved and while
-            // the background rxJava call is running on background, the current
-            // thread is released.
-            var endpoint = getSolarOutputRESTEndpoint(this).await()
-
             // Since Retrofit is no longer returning a Single, this call is straightforward...
-            var getOverviewResponse = endpoint.getOverview(customerId, apiKey)
+            var getOverviewResponse = solarOutputRESTInterface.getOverview(customerId, apiKey)
 
             // Since we waited, we are now back on original calling thread and we have
             // our data from above asynchronous calls.

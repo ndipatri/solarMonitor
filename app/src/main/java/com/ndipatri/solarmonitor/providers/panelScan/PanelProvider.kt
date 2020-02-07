@@ -45,7 +45,8 @@ open class PanelProvider(var context: Context) {
             // Here we're taking advantage of coroutine/rx2 bridge to convert an Observable stream
             // to Deferred<BeaconUpdate>.. This particular operator 'awaitFirst()' will resume
             // once the first element has been emitted from stream.
-            var beaconUpdate = GoogleProximity.getInstance().scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS).awaitFirst()
+            var beaconUpdate = GoogleProximity.getInstance()
+                    .scanForNearbyBeacon(beaconNamespaceId, PANEL_SCAN_TIMEOUT_SECONDS).awaitFirst()
 
             GoogleProximity.getInstance().stopBeaconScanning()
 
@@ -62,7 +63,7 @@ open class PanelProvider(var context: Context) {
 
                     var retrievedAttachment: String = this[1]
 
-                    var panelId = retrievedAttachment ?: NEW_PANEL_ID
+                    var panelId = retrievedAttachment
 
                     // Presumably goes out to cloud to get Customer associated with
                     // this Panel.

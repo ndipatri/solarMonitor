@@ -7,21 +7,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.ndipatri.solarmonitor.R
 import com.ndipatri.solarmonitor.SolarMonitorApp
-import com.ndipatri.solarmonitor.UI_COMFORT_DELAY
 import com.ndipatri.solarmonitor.providers.customer.CustomerProvider
 import com.ndipatri.solarmonitor.providers.panelScan.Panel
 import com.ndipatri.solarmonitor.providers.panelScan.PanelProvider
 import com.ndipatri.solarmonitor.providers.solarUpdate.SolarOutputProvider
-import io.reactivex.MaybeObserver
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.disposables.Disposable
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import javax.inject.Inject
 
-/**
+/*
  * Notice this class imports nothing from 'android.widget': it implies no view technology
  */
 
@@ -120,7 +116,7 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
     }
 
     // Notice this is not a suspending function.  Our Coroutines is launched inside of
-// this method.
+    // this method.
     open fun loadSolarOutput() {
 
         scannedPanel?.also {
@@ -144,10 +140,9 @@ open class MainActivityViewModel(context: Application) : AndroidViewModel(contex
                     // 'background' work, it will switch threads itself either through
                     // 'withContext' or 'async' or 'launch'
 
-
                     // Used here, async() is another Coroutine launcher.   It returns a Deferred object.
-                    //  This code block does NOT suspend here as we’re not calling a suspend function.
-                    //  Inside the async() block is immediately called on background thread.
+                    // This code block does NOT suspend here as we’re not calling a suspend function.
+                    // Inside the async() block is immediately called on background thread.
                     var powerOutputDeferred = async {solarOutputProvider.getSolarOutput(it.id)}
 
                     // same as above.

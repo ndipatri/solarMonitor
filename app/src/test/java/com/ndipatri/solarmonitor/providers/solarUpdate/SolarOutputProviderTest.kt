@@ -91,10 +91,7 @@ class SolarOutputProviderTest {
                 3000.0
         )
 
-        var deferredSolarOutputRESTInterface = GlobalScope.async {
-            mockSolarOutputRESTService
-        }
-        solarOutputProvider.deferredSolarOutputRESTInterface = deferredSolarOutputRESTInterface
+        solarOutputProvider.solarOutputRESTInterface = mockSolarOutputRESTService
 
         runBlockingTest {
             var powerOutput  = solarOutputProvider.getSolarOutput("123")
@@ -113,10 +110,7 @@ class SolarOutputProviderTest {
             )
         }
 
-        var deferredSolarOutputRESTInterface = GlobalScope.async {
-            mockSolarOutputRESTService
-        }
-        solarOutputProvider.deferredSolarOutputRESTInterface = deferredSolarOutputRESTInterface
+        solarOutputProvider.solarOutputRESTInterface = mockSolarOutputRESTService
 
         runBlockingTest {
             exception.expect(TimeoutCancellationException::class.java)

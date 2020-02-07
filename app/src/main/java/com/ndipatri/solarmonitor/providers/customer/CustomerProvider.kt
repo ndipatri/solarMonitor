@@ -8,11 +8,11 @@ open class CustomerProvider(var context: Context) {
 
     val customerDao = AppDatabase.getInstance(context).customerDao()
 
-    // When we convert this over Coroutines, we make this a suspend function instead
-// including the actual launcher.  This is because this is NOT a good place to launch
-// as we are unaware of the lifecycle of the component using this Customer provider.
-//
-// Backgrounding is therefore deferred and we do NOT need RxJava here.
+    // When we convert this over Coroutines, we make this a suspend function instead of
+    // including the actual launcher.  This is because this is NOT a good place to launch
+    // as we are unaware of the lifecycle of the component using this Customer provider.
+    //
+    // Backgrounding is therefore deferred and we do NOT need RxJava here.
     suspend fun findCustomerForPanel(panelId: String): Customer {
 
         var customerName = "Customer $panelId"
